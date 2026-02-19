@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capacity Request ETA Dashboard - LLM API Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- MSAL.js for Azure AD authentication -->
+    <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f5f5;
+            color: #323130;
+            font-size: 14px;
+        }
+
+        /* Microsoft-style header */
+        .ms-header {
+            background: #fff;
+            border-bottom: 1px solid #edebe9;
+            padding: 0 24px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .ms-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #323130;
+        }
+
+        .ms-logo svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .ms-nav {
+            display: flex;
+            gap: 24px;
+            margin-left: 24px;
+        }
+
+        .ms-nav a {
+            color: #605e5c;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .ms-nav a:hover {
+            color: #0078d4;
+        }
+
+        /* Sub header */
+        .sub-header {
+            background: #fff;
+            padding: 16px 24px;
+            border-bottom: 1px solid #edebe9;
+        }
+
+        .sub-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #323130;
+            margin-bottom: 8px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            background: #fff;
+            padding: 0 24px;
+            border-bottom: 1px solid #edebe9;
+        }
+
+        .tab {
+            padding: 12px 16px;
+            color: #605e5c;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            font-size: 14px;
+        }
+
+        .tab.active {
+            color: #0078d4;
+            border-bottom-color: #0078d4;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: #f3f2f1;
+        }
+
+        /* Main container */
+        .main-container {
+            padding: 24px;
+        }
+
+        /* Summary cards */
+        .summary-bar {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .summary-item {
+            display: flex;
+            gap: 8px;
+            align-items: baseline;
+        }
+
+        .summary-label {
+            color: #605e5c;
+            font-size: 14px;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #323130;
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .view-selector {
+            padding: 6px 12px;
+            border: 1px solid #8a8886;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .search-input {
+            padding: 6px 12px;
+            border: 1px solid #8a8886;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 250px;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            background: #e1dfdd;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .filter-chip:hover {
+            background: #d2d0ce;
+        }
+
+        .filter-chip.active {
+            background: #0078d4;
+            color: #fff;
+        }
+
+        /* Info banner */
+        .info-banner {
+            background: #deecf9;
+            border-left: 4px solid #0078d4;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #323130;
+            border-radius: 4px;
+        }
+
+        .info-icon {
+            width: 20px;
+            height: 20px;
+            background: #0078d4;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Table container */
+        .table-container {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1.6px 3.6px rgba(0,0,0,0.13), 0 0.3px 0.9px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #faf9f8;
+            border-bottom: 1px solid #edebe9;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #323130;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+        }
+
+        th.sortable {
+            cursor: pointer;
+        }
+
+        th.sortable:hover {
+            background: #f3f2f1;
+        }
+
+        th .sort-icon {
+            margin-left: 4px;
+            opacity: 0.5;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #edebe9;
+            color: #323130;
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: #f3f2f1;
+        }
+
+        /* Action link */
+        .action-link {
+            color: #0078d4;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .action-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-inbuildout {
+            background: #fff4ce;
+            color: #8a6914;
+        }
+
+        .status-buildoutcompleted {
+            background: #e1dfdd;
+            color: #323130;
+        }
+
+        .status-new {
+            background: #deecf9;
+            color: #0078d4;
+        }
+
+        .status-active {
+            background: #deecf9;
+            color: #0078d4;
+        }
+
+        .status-closed {
+            background: #e1dfdd;
+            color: #605e5c;
+        }
+
+        .status-committed {
+            background: #fff4ce;
+            color: #8a6914;
+        }
+
+        .status-proposed {
+            background: #f3f2f1;
+            color: #605e5c;
+        }
+
+        /* ADO link */
+        .ado-link {
+            color: #0078d4;
+            text-decoration: none;
+        }
+
+        .ado-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Target date styles */
+        .target-date {
+            white-space: nowrap;
+        }
+
+        .target-date.overdue {
+            color: #323130;
+            font-weight: 600;
+        }
+
+        .target-date.upcoming {
+            color: #8a6914;
+            font-weight: 500;
+        }
+
+        .target-date.on-track {
+            color: #323130;
+        }
+
+        .target-date.na {
+            color: #8a8886;
+            font-style: italic;
+        }
+
+        /* Environment badges */
+        .env-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .env-prod {
+            background: #605e5c;
+            color: #fff;
+        }
+
+        .env-dev {
+            background: #8a8886;
+            color: #fff;
+        }
+
+        /* Rank badge */
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
+            background: #f3f2f1;
+            color: #323130;
+        }
+
+        .rank-0 { background: #323130; color: #fff; }
+        .rank-1 { background: #605e5c; color: #fff; }
+        .rank-2 { background: #8a8886; color: #fff; }
+
+        /* Footer */
+        .footer {
+            padding: 16px 24px;
+            color: #605e5c;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filter-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .search-input {
+                width: 100%;
+            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #323130;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* GPU count */
+        .gpu-count {
+            font-weight: 600;
+            color: #0078d4;
+        }
+
+        /* Refresh button */
+        .refresh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #0078d4;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #106ebe;
+        }
+
+        .refresh-btn:disabled {
+            background: #c8c6c4;
+            cursor: not-allowed;
+        }
+
+        .refresh-btn .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .refresh-btn.loading .spinner {
+            display: inline-block;
+        }
+
+        .refresh-btn.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Auth status */
+        .auth-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #605e5c;
+        }
+
+        .auth-status .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #c8c6c4;
+        }
+
+        .auth-status.authenticated .status-dot {
+            background: #0078d4;
+        }
+
+        /* Action bar */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .action-bar-left {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 1000;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .loading-overlay .large-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #0078d4;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-overlay .loading-text {
+            font-size: 16px;
+            color: #323130;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            background: #323130;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1001;
+        }
+
+        .toast.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: #605e5c;
+        }
+
+        .toast.success {
+            background: #0078d4;
+        }
+
+        /* Column filters */
+        .column-filter {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #c8c6c4;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-top: 6px;
+            box-sizing: border-box;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .column-filter:focus {
+            border-color: #0078d4;
+            outline: none;
+        }
+
+        th {
+            vertical-align: top;
+        }
+
+        .th-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .th-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .th-label:hover {
+            color: #0078d4;
+        }
+
+        .clear-filters-btn {
+            padding: 6px 12px;
+            background: #f3f2f1;
+            border: 1px solid #8a8886;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #323130;
+        }
+
+        .clear-filters-btn:hover {
+            background: #e1dfdd;
+        }
+    </style>
+</head>
+<body>
+    <!-- Microsoft-style header -->
+    <header class="ms-header">
+        <div class="ms-logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="10" height="10" fill="#f25022"/>
+                <rect x="13" y="1" width="10" height="10" fill="#7fba00"/>
+                <rect x="1" y="13" width="10" height="10" fill="#00a4ef"/>
+                <rect x="13" y="13" width="10" height="10" fill="#ffb900"/>
+            </svg>
+            <span>M365 Core Dev Center</span>
+        </div>
+        <nav class="ms-nav">
+            <a href="#">Explore</a>
+            <a href="#">Support</a>
+            <a href="#">Docs</a>
+        </nav>
+    </header>
+
+    <!-- Sub header -->
+    <div class="sub-header">
+        <h1>LLM API Portal - Capacity Request ETA Dashboard</h1>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <a href="#" class="tab">Scenarios</a>
+        <a href="#" class="tab">Model Deployments</a>
+        <a href="#" class="tab active">Capacity Requests</a>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-container">
+        <!-- Summary bar -->
+        <div class="summary-bar">
+            <div class="summary-item">
+                <span class="summary-label">Total Requests:</span>
+                <span class="summary-value" id="totalRequests">92</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Requested GPUs:</span>
+                <span class="summary-value" id="totalGpus">18,272</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">In Buildout:</span>
+                <span class="summary-value" id="inBuildoutCount">27</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Buildout Completed:</span>
+                <span class="summary-value" id="completedCount">66</span>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <button class="clear-filters-btn" onclick="clearAllFilters()">Clear All Filters</button>
+            <span style="font-size: 13px; color: #605e5c;">Use the filter inputs in each column header to filter data</span>
+        </div>
+
+        <!-- Action bar -->
+        <div class="action-bar">
+            <div class="action-bar-left">
+                <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
+                    <div class="spinner"></div>
+                    <span class="btn-text">🔄 Refresh Data</span>
+                </button>
+                <div class="auth-status" id="authStatus">
+                    <div class="status-dot"></div>
+                    <span id="authText">Not authenticated</span>
+                </div>
+            </div>
+            <span style="font-size: 13px; color: #605e5c;">Last refreshed: <span id="lastRefresh">February 13, 2026 (static data)</span></span>
+        </div>
+
+        <!-- Info banner -->
+        <div class="info-banner">
+            <div class="info-icon">i</div>
+            <span>This shows capacity requests in Buildout or Buildout Completed status with ETA/Target Dates from ADO. Click "Refresh Data" to fetch live data (requires Microsoft auth).</span>
+        </div>
+
+        <!-- Table container -->
+        <div class="table-container">
+            <table id="capacityTable">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="type">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('type')">Request Type ↕</span>
+                                <select class="column-filter" data-column="type" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="productGroup">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('productGroup')">Product Group ↕</span>
+                                <select class="column-filter" data-column="productGroup" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="submittedBy">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('submittedBy')">Submitted By ↕</span>
+                                <select class="column-filter" data-column="submittedBy" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="scenarioName">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('scenarioName')">Scenario Name ↕</span>
+                                <select class="column-filter" data-column="scenarioName" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="featureName">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('featureName')">Feature Name ↕</span>
+                                <select class="column-filter" data-column="featureName" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="featurePhase">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('featurePhase')">Feature Phase ↕</span>
+                                <select class="column-filter" data-column="featurePhase" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="env">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('env')">Env ↕</span>
+                                <select class="column-filter" data-column="env" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="gpuCount">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('gpuCount')">A100E ↕</span>
+                                <select class="column-filter" data-column="gpuCount" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="model">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('model')">Model ↕</span>
+                                <select class="column-filter" data-column="model" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="mode">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('mode')">Mode ↕</span>
+                                <select class="column-filter" data-column="mode" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="status">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('status')">Request Status ↕</span>
+                                <select class="column-filter" data-column="status" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="adoLink">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('adoLink')">ADO ↕</span>
+                                <select class="column-filter" data-column="adoLink" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="targetDate">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('targetDate')">Target Date ↕</span>
+                                <select class="column-filter" data-column="targetDate" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="adoStatus">
+                            <div class="th-content">
+                                <span class="th-label" onclick="sortByColumn('adoStatus')">ADO Status ↕</span>
+                                <select class="column-filter" data-column="adoStatus" onchange="filterData()"></select>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>LLM API Capacity Request ETA Dashboard | Last Updated: February 19, 2026</p>
+    </footer>
+
+    <script>
+        // Capacity request data combined with ADO information
+        const capacityData = [
+            { id: "ef622229-cb64-4379-87bb-e380ab6180ae", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Gayathri Chandrasekaran", scenarioName: "Enterprise Sydney", featureName: "[PEAK, ID35.2] Workberry capacity for WW for EU", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "sonicberry", env: "Prod", mode: "Interactive", gpuCount: 721, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6897704", submittedTime: "2026-01-08", targetDate: "2026-02-06", adoStatus: "Closed" },
+            { id: "c815c1a7-0d56-422f-919c-64cb3eac73b8", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Jacob Adams", scenarioName: "Copilot Notebooks", featureName: "Copilot Notebooks", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 415, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6935732", submittedTime: "2026-01-08", targetDate: "", adoStatus: "Closed" },
+            { id: "e5ff9884-b399-4816-887c-5075ad028019", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Natasha Gaitonde", scenarioName: "Knowledge Agent (SP Agents)", featureName: "Reasoning Model Eval in SDF", featurePhase: "InternalEvaluationSDF", productGroup: "ODSP", model: "gpt-51-2025-11-13", env: "Dev", mode: "Interactive", gpuCount: 50, rank: 2, councilDecision: "PromoteToBuildoutFull", adoLink: "6882658", submittedTime: "2026-01-08", targetDate: "", adoStatus: "New" },
+            { id: "acff52e2-a0a0-417a-bac8-0bb3dfe02323", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Natasha Gaitonde", scenarioName: "SharePoint Knowledge Agent", featureName: "Reasoning Model Eval in SDF", featurePhase: "InternalEvaluationSDF", productGroup: "ODSP", model: "anthropic-claude-sonnet-4-5", env: "Dev", mode: "Interactive", gpuCount: 50, rank: 2, councilDecision: "PromoteToBuildoutFull", adoLink: "6882656", submittedTime: "2026-01-08", targetDate: "", adoStatus: "Closed" },
+            { id: "8e45c4b6-93d3-424e-8de6-59a06368b36b", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Natasha Gaitonde", scenarioName: "Knowledge Agent (SP Agents)", featureName: "Reasoning Model Eval in SDF", featurePhase: "InternalEvaluationMSIT", productGroup: "ODSP", model: "gpt-52-chat", env: "Dev", mode: "Interactive", gpuCount: 50, rank: 3, councilDecision: "PromoteToBuildoutFull", adoLink: "6882659", submittedTime: "2026-01-08", targetDate: "", adoStatus: "Closed" },
+            { id: "aaf020f8-28af-43b3-99cc-e4eb903baa13", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Natasha Gaitonde", scenarioName: "Knowledge Agent (SP Agents)", featureName: "Reasoning Model Eval in SDF", featurePhase: "InternalEvaluationSDF", productGroup: "ODSP", model: "anthropic-claude-opus-4-5", env: "Dev", mode: "Interactive", gpuCount: 50, rank: 2, councilDecision: "PromoteToBuildoutFull", adoLink: "6882657", submittedTime: "2026-01-08", targetDate: "", adoStatus: "Closed" },
+            { id: "136d253d-ea3c-4014-9f59-d868efc2c014", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Simona Virga", scenarioName: "PowerApps-Solution-Generator", featureName: "Next generation Power Apps - Lovable Complete", featurePhase: "GeneralAvailabilityWW", productGroup: "BIC", model: "gpt-41-shortco-2025-04-14", env: "Prod", mode: "Interactive", gpuCount: 75, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6887997", submittedTime: "2026-01-08", targetDate: "2026-02-13", adoStatus: "Active" },
+            { id: "92d97a09-1d55-4fc0-a568-4150b501657c", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Simona Virga", scenarioName: "Next generation Power Apps - Lovable Complete", featureName: "Next generation Power Apps - Lovable Complete", featurePhase: "GeneralAvailabilityWW", productGroup: "BIC", model: "gpt-5-reasoning", env: "Prod", mode: "Interactive", gpuCount: 345, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6887994", submittedTime: "2026-01-08", targetDate: "", adoStatus: "Closed" },
+            { id: "055a424f-6066-4ad7-8e4a-0c5cfe967f0b", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Simona Virga", scenarioName: "Next generation Power Apps - Lovable Complete", featureName: "Next generation Power Apps - Lovable Complete", featurePhase: "GeneralAvailabilityWW", productGroup: "BIC", model: "gpt-51-chat-2025-11-13", env: "Prod", mode: "Interactive", gpuCount: 112, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6891407", submittedTime: "2026-01-08", targetDate: "", adoStatus: "Closed" },
+            { id: "417d8c1b-b40e-4f7c-ae06-c0420ba7da71", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Simona Virga", scenarioName: "Next generation Power Apps - Lovable Complete", featureName: "Next generation Power Apps - Lovable Complete", featurePhase: "GeneralAvailabilityWW", productGroup: "BIC", model: "anthropic-claude-opus-4-5", env: "Prod", mode: "Interactive", gpuCount: 0, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6860751", submittedTime: "2026-01-08", targetDate: "", adoStatus: "Closed" },
+            { id: "235974b4-81f9-4771-b325-3b2aaeccdfbe", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Sheetal Chhabra", scenarioName: "Helix CUA", featureName: "Helix CUA", featurePhase: "ExternalEvaluationPreview", productGroup: "BIC", model: "anthropic-claude-sonnet-4-5", env: "Prod", mode: "Interactive", gpuCount: 280, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6896660", submittedTime: "2026-01-08", targetDate: "", adoStatus: "New" },
+            { id: "4e9100ce-83c9-46ed-bd1b-ce734cd43c10", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Antoine Cellerier", scenarioName: "CAPI Prod for all partners", featureName: "CAPI Prod for all partners", featurePhase: "InternalEvaluationMSIT", productGroup: "BIC", model: "gpt-41-shortco-2025-04-14", env: "Prod", mode: "Interactive", gpuCount: 140, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6887993", submittedTime: "2026-01-08", targetDate: "2026-02-13", adoStatus: "Closed" },
+            { id: "37da5762-6ec2-4d2a-a126-2032149a6c58", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Alex Dobin", scenarioName: "Declarative Agents Paid", featureName: "Declarative Agents Paid", featurePhase: "GeneralAvailabilityWW", productGroup: "BIC", model: "anthropic-claude-opus-4-5", env: "Prod", mode: "Interactive", gpuCount: 400, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6912433", submittedTime: "2026-01-08", targetDate: "2026-02-10", adoStatus: "Closed" },
+            { id: "c6d45a5e-e4fc-4275-b7d5-80439c3f6518", type: "LLM Inference", status: "InBuildout", submittedBy: "Qianqian Li", scenarioName: "Teams MKB Crux Generation", featureName: "Teams Meeting Knoledge Brain Crux Generation", featurePhase: "InternalEvaluationSDF", productGroup: "Teams", model: "gpt-41-shortco-2025-04-14", env: "Dev", mode: "Async", gpuCount: 1, rank: 12, councilDecision: "PromoteToBuildoutFull", adoLink: "6930626", submittedTime: "2026-01-13", targetDate: "", adoStatus: "Proposed" },
+            { id: "a4894922-6faa-4b56-8d17-74a789d29e79", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Shailesh Karri", scenarioName: "AI Photos Editing in OD Photos", featureName: "AI Restyle", featurePhase: "GeneralAvailabilityWW", productGroup: "ODSP", model: "gpt-image-1-5", env: "Prod", mode: "Interactive", gpuCount: 15, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6906909", submittedTime: "2026-01-13", targetDate: "", adoStatus: "Closed" },
+            { id: "430381de-c719-4f4d-8c1d-830da606dc3a", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Ahmed Bisht", scenarioName: "Office AI Digital Workers", featureName: "Digital Workers", featurePhase: "InternalEvaluationSDF", productGroup: "OPG", model: "anthropic-claude-sonnet-4-5", env: "Dev", mode: "Interactive", gpuCount: 5, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6864211", submittedTime: "2026-01-13", targetDate: "", adoStatus: "Closed" },
+            { id: "84025cbe-a91f-4d0d-9edf-1d1666dff9f9", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Ahmed Bisht", scenarioName: "Office AI Digital Workers", featureName: "Digital Workers", featurePhase: "InternalEvaluationSDF", productGroup: "OPG", model: "anthropic-claude-haiku-4-5", env: "Dev", mode: "Interactive", gpuCount: 5, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6864212", submittedTime: "2026-01-13", targetDate: "", adoStatus: "Closed" },
+            { id: "b8ff50c3-561a-48e6-8571-d6d9da235be3", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Jonathan Brenner", scenarioName: "Flagged Content Evaluation (DigiTS)", featureName: "Flagged Content Evaluation", featurePhase: "Development", productGroup: "Others", model: "safeberryv4", env: "Dev", mode: "Interactive", gpuCount: 1, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6959880", submittedTime: "2026-01-14", targetDate: "", adoStatus: "Closed" },
+            { id: "a91b9486-3d93-48f2-91fc-eee34f4187f3", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Natasha Gaitonde", scenarioName: "SharePoint Knowledge Agent", featureName: "KA MSIT Rollout", featurePhase: "InternalEvaluationMSIT", productGroup: "ODSP", model: "gpt-41-shortco-2025-04-14", env: "Prod", mode: "Interactive", gpuCount: 216, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6887999", submittedTime: "2026-01-14", targetDate: "", adoStatus: "Closed" },
+            { id: "dbefa4c7-b7d7-4471-b625-b781caf814cc", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Bhavuk Jain", scenarioName: "Word Edit Mode", featureName: "Word Agent", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 1355, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6888005", submittedTime: "2026-01-15", targetDate: "", adoStatus: "Closed" },
+            { id: "1304c426-fe63-4428-946a-09b1e1d15654", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Roshan Parikh", scenarioName: "Excel Agent", featureName: "Excel Agent Mode", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 3249, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6935933", submittedTime: "2026-01-15", targetDate: "", adoStatus: "Closed" },
+            { id: "ca0352e8-16e9-4f18-b72f-1f241eed3575", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Roshan Parikh", scenarioName: "Excel Agent", featureName: "Excel Agent Mode", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "anthropic-claude-opus-4-5", env: "Prod", mode: "Interactive", gpuCount: 4, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6912420", submittedTime: "2026-01-15", targetDate: "", adoStatus: "New" },
+            { id: "634ae930-a587-44bf-bd06-5a0bf4b2486f", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Roshan Parikh", scenarioName: "Excel Agent", featureName: "Excel Agent Mode", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "anthropic-claude-opus-4-5", env: "Prod", mode: "Interactive", gpuCount: 4, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6912435", submittedTime: "2026-01-15", targetDate: "", adoStatus: "New" },
+            { id: "4609b345-dc32-481c-ae38-53d45d8cf82b", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Cherish Molezion", scenarioName: "Augloop-Storyteller (PowerPoint)", featureName: "PPT Agent Mode - Creation", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 1127, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6897108", submittedTime: "2026-01-15", targetDate: "", adoStatus: "Closed" },
+            { id: "50e06ab3-1675-4d7a-b0e7-41fe03f2aecc", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Shilpi Gupta", scenarioName: "Designer - Paid", featureName: "Bizchat and PPT Agent image gen", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-image-1-5", env: "Prod", mode: "Interactive", gpuCount: 2000, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6888006", submittedTime: "2026-01-15", targetDate: "", adoStatus: "Closed" },
+            { id: "2e7b25c4-c81e-4e40-8ea0-b95932bc494a", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Cherish Molezion", scenarioName: "PPT-Slidesense", featureName: "PPT Agent", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-41-shortco-2025-04-14", env: "Prod", mode: "Interactive", gpuCount: 63, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6897103", submittedTime: "2026-01-15", targetDate: "", adoStatus: "Closed" },
+            { id: "f16e58e7-4422-4dd9-ba6d-fbe65da6f98e", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Cherish Molezion", scenarioName: "PPT-Slidesense", featureName: "PPT Agent", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-41-mini-04-14", env: "Prod", mode: "Interactive", gpuCount: 5, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6897101", submittedTime: "2026-01-15", targetDate: "", adoStatus: "Closed" },
+            { id: "371a1eb9-bb5a-4d61-beee-c70db6ea75c6", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Cherish Molezion", scenarioName: "PPT-Slidesense", featureName: "PPT Agent-Slidesense", featurePhase: "Development", productGroup: "OPG", model: "gpt-52-reasoning", env: "Dev", mode: "Interactive", gpuCount: 63, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6916089", submittedTime: "2026-01-15", targetDate: "", adoStatus: "Closed" },
+            { id: "d0277384-70ab-429e-afa8-2b21fcccfde0", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Cherish Molezion", scenarioName: "PPT-Proactive_Suggestions", featureName: "PPT Agent", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-41-nano-04-14", env: "Prod", mode: "Interactive", gpuCount: 63, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6897106", submittedTime: "2026-01-15", targetDate: "", adoStatus: "Closed" },
+            { id: "1f3a3ac1-ab1c-4d0a-be6b-16104c123a6e", type: "LLM Inference", status: "InBuildout", submittedBy: "Cherish Molezion", scenarioName: "Designer - Paid", featureName: "PPT Agent Mode", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "flux-2-pro", env: "Prod", mode: "Interactive", gpuCount: 122, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6935608", submittedTime: "2026-01-16", targetDate: "2026-02-26", adoStatus: "Active" },
+            { id: "218919f7-616c-48ea-ac00-2e95202573f3", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Cherish Molezion", scenarioName: "Designer - Paid", featureName: "PPT Agent Mode", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "flux-2-pro", env: "Prod", mode: "Interactive", gpuCount: 53, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6935610", submittedTime: "2026-01-16", targetDate: "", adoStatus: "Closed" },
+            { id: "556b55ea-3537-4113-aa3c-03f77e9499c5", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Chandra Setiawan", scenarioName: "Augloop-Chat (PowerPoint Copilot)", featureName: "WXP Agent", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 43, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6935639", submittedTime: "2026-01-16", targetDate: "", adoStatus: "Closed" },
+            { id: "a5b4384e-bfca-4a31-8922-9c10a57ef1ca", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Chandra Setiawan", scenarioName: "Augloop-Chat (PowerPoint Copilot)", featureName: "WXP Agent", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 112, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6935615", submittedTime: "2026-01-16", targetDate: "", adoStatus: "Closed" },
+            { id: "4cd087e8-4617-4056-8579-3c44c8c135d2", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Koo SangHyung", scenarioName: "ODSP-orchestration-experimentation", featureName: "Agent Runtime Offline Evaluation", featurePhase: "InternalEvaluationSDF", productGroup: "ODSP", model: "gpt-41-mini-04-14", env: "Dev", mode: "Interactive", gpuCount: 13, rank: 2, councilDecision: "PromoteToBuildoutFull", adoLink: "6930623", submittedTime: "2026-01-16", targetDate: "", adoStatus: "Closed" },
+            { id: "f376012b-5540-4d83-9c21-e48fa622b040", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Bryan Thomas", scenarioName: "Viva Glint Conversational Feedback Agent", featureName: "Viva Glint Conversational Feedback Agent", featurePhase: "ExternalEvaluationPreview", productGroup: "Viva", model: "anthropic-claude-haiku-4-5", env: "Prod", mode: "Interactive", gpuCount: 2, rank: 4, councilDecision: "PromoteToBuildoutFull", adoLink: "6912430", submittedTime: "2026-01-20", targetDate: "", adoStatus: "New" },
+            { id: "91f10755-bc8e-4d23-af44-9250389f2a71", type: "Polymer", status: "InBuildout", submittedBy: "Shiyu Peng", scenarioName: "M365Chat RAI", featureName: "JailBreakM365ChatPublicV205", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWeb", model: "JailBreakM365ChatPublicV205", env: "-", mode: "-", gpuCount: 1, rank: 3, councilDecision: "PromoteToBuildoutFull", adoLink: "6930620", submittedTime: "2026-01-20", targetDate: "2026-02-27", adoStatus: "Committed" },
+            { id: "37ab241d-3515-4c04-93cd-fa10575444ed", type: "Polymer", status: "InBuildout", submittedBy: "Shiyu Peng", scenarioName: "M365Chat RAI", featureName: "InapClassifierBizChatPublicV200", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWeb", model: "InapClassifierBizChatPublicV200", env: "-", mode: "-", gpuCount: 33, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6913151", submittedTime: "2026-01-26", targetDate: "2026-02-27", adoStatus: "Active" },
+            { id: "e0d9e7d1-2d27-4136-b911-12ca75573797", type: "Polymer", status: "InBuildout", submittedBy: "Shreevardhan Shrikhande", scenarioName: "SPLADE", featureName: "SpladeMultilingualTritonOnnx", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateNonSemantic", model: "spladeopensearchv1", env: "-", mode: "-", gpuCount: 20, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6948464", submittedTime: "2026-01-27", targetDate: "2026-02-27", adoStatus: "Proposed" },
+            { id: "55f5a5c2-1280-49fa-899b-dc8caaf98307", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Tolga Kilicli", scenarioName: "CopilotControlSystemChatAPI", featureName: "Work IQ API", featurePhase: "ExternalEvaluationPreview", productGroup: "M365SubstrateNonSemantic", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 500, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6953745", submittedTime: "2026-01-20", targetDate: "", adoStatus: "Closed" },
+            { id: "ebdcaf37-71dc-4438-ad91-9f8c64039a23", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Tolga Kilicli", scenarioName: "CopilotControlSystemChatAPI", featureName: "Work IQ API", featurePhase: "ExternalEvaluationPreview", productGroup: "M365SubstrateNonSemantic", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 500, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6953744", submittedTime: "2026-01-20", targetDate: "", adoStatus: "Closed" },
+            { id: "38bf5fc7-dbc1-4dcb-be6c-e3136547618c", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Tolga Kilicli", scenarioName: "CopilotControlSystemChatAPI", featureName: "Work IQ API", featurePhase: "ExternalEvaluationPreview", productGroup: "M365SubstrateNonSemantic", model: "gpt-51-chat-2025-11-13", env: "Prod", mode: "Interactive", gpuCount: 200, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6953741", submittedTime: "2026-01-20", targetDate: "", adoStatus: "Closed" },
+            { id: "791dac12-cd8e-4000-9ba4-d16561d49233", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Tolga Kilicli", scenarioName: "CopilotControlSystemChatAPI", featureName: "Work IQ API", featurePhase: "ExternalEvaluationPreview", productGroup: "M365SubstrateNonSemantic", model: "gpt-5-reasoning", env: "Prod", mode: "Interactive", gpuCount: 400, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6953743", submittedTime: "2026-01-20", targetDate: "", adoStatus: "Closed" },
+            { id: "c2fe2642-4b9b-427a-9a9d-43403405a7fa", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Cherish Molezion", scenarioName: "Augloop-Storyteller (PowerPoint)", featureName: "PPT Agent - Creation", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 553, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6897109", submittedTime: "2026-01-21", targetDate: "", adoStatus: "Closed" },
+            { id: "93548bf2-6018-4b52-9f32-f690785b7512", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Varsha Rathod", scenarioName: "Word Edit Mode", featureName: "Word Edit Mode (Switcher)", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-41-mini-04-14", env: "Prod", mode: "Interactive", gpuCount: 32, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6907801", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "26e45eb9-5187-49a9-bd4b-cdf75d8ddfe0", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Kaicheng Huang", scenarioName: "CodeResearcherAgent", featureName: "CodeResearcherAgent", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateNonSemantic", model: "gpt-52-reasoning", env: "Dev", mode: "Interactive", gpuCount: 1, rank: 2, councilDecision: "PromoteToBuildoutFull", adoLink: "6936998", submittedTime: "2026-01-23", targetDate: "", adoStatus: "Closed" },
+            { id: "f37702a5-9674-4c23-a55a-e0b2286213cf", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Anton Labunets", scenarioName: "SharePoint Knowledge Vibe Authoring", featureName: "Page Builder", featurePhase: "InternalEvaluationSDF", productGroup: "ODSP", model: "gpt-5-reasoning", env: "Dev", mode: "Interactive", gpuCount: 35, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6916088", submittedTime: "2026-01-23", targetDate: "", adoStatus: "Closed" },
+            { id: "720c1239-5571-4aa1-a9b9-58f0ccfa2836", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Kaicheng Huang", scenarioName: "CodeResearcherAgent", featureName: "CodeResearcherAgent", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateNonSemantic", model: "gpt-5-codex", env: "Dev", mode: "Interactive", gpuCount: 1, rank: 2, councilDecision: "PromoteToBuildoutFull", adoLink: "6936999", submittedTime: "2026-01-28", targetDate: "", adoStatus: "Closed" },
+            { id: "88c93a54-d7c8-46b1-9ec8-ef30c74a4f83", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Kaicheng Huang", scenarioName: "CodeResearcherAgent", featureName: "CodeResearcherAgent", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateNonSemantic", model: "gpt-52-chat", env: "Dev", mode: "Interactive", gpuCount: 1, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6937000", submittedTime: "2026-01-28", targetDate: "", adoStatus: "Closed" },
+            { id: "0fd66839-9c30-4460-aa3c-dab3e60722ac", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Chen Shen", scenarioName: "OPG Evaluation Platform", featureName: "WXP agent", featurePhase: "Development", productGroup: "Others", model: "gpt-5-reasoning", env: "Dev", mode: "Interactive", gpuCount: 35, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6930624", submittedTime: "2026-01-28", targetDate: "", adoStatus: "Closed" },
+            { id: "e89c4d4c-70ee-4965-9c8b-bdf05c1a5a16", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Swetha Talluri", scenarioName: "E+D India intelligence experiments", featureName: "M365AdminAgent", featurePhase: "Development", productGroup: "BIC", model: "gpt-5-nano", env: "Dev", mode: "Interactive", gpuCount: 3, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6945238", submittedTime: "2026-01-28", targetDate: "", adoStatus: "Closed" },
+            { id: "b0ef42df-7093-476e-b6cf-f07a2aba2d7a", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Mengke Li", scenarioName: "SharePoint Admin Copilot", featureName: "FeatureEvaluation", featurePhase: "InternalEvaluationSDF", productGroup: "ODSP", model: "gpt-52-chat-2026-01-12", env: "Dev", mode: "Interactive", gpuCount: 10, rank: 2, councilDecision: "PromoteToBuildoutFull", adoLink: "6930622", submittedTime: "2026-01-29", targetDate: "", adoStatus: "Closed" },
+            { id: "ab59bc40-38fa-4db5-baa4-fecb96bde98f", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Predrag Jovanovic", scenarioName: "BizChat Echo Traffic Standard Tier", featureName: "Address throttling issues that disrupt Sydney Build Certification", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "gpt-41-mini-04-14-harmony-completions", env: "Prod", mode: "Interactive", gpuCount: 3, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6924511", submittedTime: "2026-01-29", targetDate: "", adoStatus: "Closed" },
+            { id: "a61ef7c1-088d-430f-925b-0019a240053d", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Predrag Jovanovic", scenarioName: "BizChat Echo Traffic Standard Tier", featureName: "Address throttling issues that disrupt Sydney Build Certification", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "gpt-41-mini-04-14", env: "Prod", mode: "Interactive", gpuCount: 16, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6924507", submittedTime: "2026-01-29", targetDate: "", adoStatus: "Closed" },
+            { id: "f2d15e76-d272-4002-8242-4f6ab3c353c0", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Andrew Huang", scenarioName: "HVI Image Descriptions", featureName: "Image description validation in test tenant", featurePhase: "InternalEvaluationTDF", productGroup: "M365SubstrateSemanticIndex", model: "gpt-51-chat-2025-11-13", env: "Prod", mode: "Interactive", gpuCount: 2, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6945201", submittedTime: "2026-01-30", targetDate: "", adoStatus: "Closed" },
+            { id: "59db3a8d-21ab-42eb-84af-085071282024", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Sarath Chitta", scenarioName: "TeamsEventsIntelligence", featureName: "Event Agent/Agentic Workflow", featurePhase: "Development", productGroup: "Teams", model: "gpt-41-mini-04-14", env: "Dev", mode: "Interactive", gpuCount: 11, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6945140", submittedTime: "2026-01-30", targetDate: "", adoStatus: "Closed" },
+            { id: "4c029b11-9734-4fa8-9429-dde2bfe3fdc8", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Roshan Parikh", scenarioName: "Excel Agent", featureName: "Excel Agent Mode", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-41-shortco-2025-04-14", env: "Prod", mode: "Interactive", gpuCount: 67, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6935644", submittedTime: "2026-02-03", targetDate: "", adoStatus: "Closed" },
+            { id: "1379fd21-c635-415a-9286-612febff844e", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Ganesh Shankaran", scenarioName: "COEP-EGP Graph RAG Default", featureName: "Copilot Offline Evaluation PLatform", featurePhase: "GeneralAvailabilityWW", productGroup: "M365SubstrateNonSemantic", model: "gpt-41-shortco-2025-04-14", env: "Prod", mode: "Interactive", gpuCount: 275, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6940748", submittedTime: "2026-02-03", targetDate: "2026-02-12", adoStatus: "Closed" },
+            { id: "9661c786-e648-43c9-859b-283815bf8922", type: "LLM Inference", status: "InBuildout", submittedBy: "Boxuan Chen", scenarioName: "EnterpriseSydney", featureName: "Language hint", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "gpt-41-mini-04-14", env: "Prod", mode: "Interactive", gpuCount: 68, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6955782", submittedTime: "2026-02-10", targetDate: "2026-02-20", adoStatus: "Committed" },
+            { id: "c628610c-b9f4-4a04-9a66-a283a99c6418", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Andy Choi", scenarioName: "PowerApps-Solution-Generator", featureName: "GPU Transfer from M365 to BIC", featurePhase: "GeneralAvailabilityWW", productGroup: "BIC", model: "gpt-5-chat-2025-10-03", env: "Prod", mode: "Interactive", gpuCount: 72, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6887159", submittedTime: "2026-02-10", targetDate: "2026-02-27", adoStatus: "Closed" },
+            { id: "ab5aa31f-06e7-4436-a01b-a719f1481f5e", type: "LLM Inference", status: "InBuildout", submittedBy: "Robin Qu", scenarioName: "PAX Admin Flow", featureName: "PAX Admin Flow", featurePhase: "Development", productGroup: "Viva", model: "gpt-41-shortco-2025-04-14", env: "Dev", mode: "Async", gpuCount: 1, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6930627", submittedTime: "2026-02-10", targetDate: "", adoStatus: "Active" },
+            { id: "8f6be9b2-05f5-4d30-99cd-7de509fe1499", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Anthony Hu", scenarioName: "Prompt Efficiency Evaluation", featureName: "Prompt Efficiency Offline Evaluation", featurePhase: "Development", productGroup: "M365SubstrateNonSemantic", model: "gpt-41-longco-2025-04-14", env: "Dev", mode: "Interactive", gpuCount: 47, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6944352", submittedTime: "2026-02-03", targetDate: "", adoStatus: "Closed" },
+            { id: "8f74468f-dadd-4388-b84e-34ba98885149", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Anthony Hu", scenarioName: "Prompt Efficiency Evaluation", featureName: "Prompt Efficiency Offline Evaluation", featurePhase: "Development", productGroup: "M365SubstrateNonSemantic", model: "gpt-41-shortco-2025-04-14-responses", env: "Dev", mode: "Interactive", gpuCount: 4, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6944351", submittedTime: "2026-02-03", targetDate: "", adoStatus: "Closed" },
+            { id: "040ded5a-8a83-438a-9205-5f3533fbee20", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Shilpi Gupta", scenarioName: "Designer - Paid", featureName: "PPT Agent", featurePhase: "GeneralAvailabilityWW", productGroup: "OPG", model: "gpt-51-chat-2025-11-13", env: "Prod", mode: "Interactive", gpuCount: 305, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6936011", submittedTime: "2026-02-03", targetDate: "", adoStatus: "Closed" },
+            { id: "b0a1fafd-dd27-4dfe-a2c4-532ab0692dc5", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Akhlesh Gupta", scenarioName: "AI Service For Debugging Copilot Scenario", featureName: "T2T Debugging Copilot", featurePhase: "Development", productGroup: "Others", model: "gpt-41-shortco-2025-04-14", env: "Dev", mode: "Interactive", gpuCount: 21, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6945239", submittedTime: "2026-02-03", targetDate: "", adoStatus: "Closed" },
+            { id: "5979ad25-2e52-4b3d-8c56-72b8d0365509", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Akhlesh Gupta", scenarioName: "AI Service For Debugging Copilot Scenario", featureName: "T2T Debugging Copilot", featurePhase: "Development", productGroup: "Others", model: "gpt-41-longco-2025-04-14", env: "Dev", mode: "Interactive", gpuCount: 64, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6945241", submittedTime: "2026-02-04", targetDate: "", adoStatus: "Closed" },
+            { id: "b53702d5-53f4-4629-bbc8-295f056e1c3a", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Deepak Modi", scenarioName: "Teams Project Agent", featureName: "Teams Project Agent", featurePhase: "InternalEvaluationSDF", productGroup: "Teams", model: "gpt-52-reasoning", env: "Dev", mode: "Interactive", gpuCount: 40, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6944203", submittedTime: "2026-02-04", targetDate: "", adoStatus: "Closed" },
+            { id: "63a403bc-5b19-4809-add5-196cbf9d1cc9", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Deepak Modi", scenarioName: "Teams Project Agent", featureName: "Teams Project Agent", featurePhase: "InternalEvaluationSDF", productGroup: "Teams", model: "anthropic-claude-sonnet-4-5", env: "Dev", mode: "Interactive", gpuCount: 35, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6944202", submittedTime: "2026-02-04", targetDate: "", adoStatus: "Closed" },
+            { id: "37d072c6-a64a-45c8-9975-c19bfd6c3a1e", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Swetha Talluri", scenarioName: "E+D India intelligence experiments", featureName: "M365AdminAgent", featurePhase: "Development", productGroup: "BIC", model: "gpt-5-mini", env: "Dev", mode: "Interactive", gpuCount: 1, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6945235", submittedTime: "2026-02-04", targetDate: "", adoStatus: "Closed" },
+            { id: "857e96c7-5e73-4a06-80fa-b3df96dac80c", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Swetha Talluri", scenarioName: "E+D India intelligence experiments", featureName: "M365AdminAgent", featurePhase: "Development", productGroup: "BIC", model: "anthropic-claude-sonnet-4-5", env: "Dev", mode: "Interactive", gpuCount: 1, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6945236", submittedTime: "2026-02-04", targetDate: "", adoStatus: "Closed" },
+            { id: "f151a778-10ce-4dc2-ae45-f4ed4b9e4aae", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Swetha Talluri", scenarioName: "E+D India intelligence experiments", featureName: "M365AdminAgent", featurePhase: "Development", productGroup: "BIC", model: "gpt-52-chat", env: "Dev", mode: "Interactive", gpuCount: 2, rank: 1, councilDecision: "PromoteToBuildoutFull", adoLink: "6945237", submittedTime: "2026-02-04", targetDate: "", adoStatus: "Closed" },
+            { id: "baf9c657-348a-4d51-8200-f01d6d0a763c", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Kushal Aurangabadkar", scenarioName: "TeanantCopilot-DataPrep", featureName: "Copilot Tuning Data Prep Sync test capacity", featurePhase: "ExternalEvaluationPreview", productGroup: "M365SubstrateNonSemantic", model: "gpt-52-reasoning", env: "Dev", mode: "Interactive", gpuCount: 61, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6960565", submittedTime: "2026-02-10", targetDate: "", adoStatus: "Cut" },
+            { id: "46d98a2b-5ec5-4878-b489-864669e5ca2e", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Kushal Aurangabadkar", scenarioName: "Tenant Copilot Serving", featureName: "Copilot Tuning Vanilla agent Inference  (dev)", featurePhase: "ExternalEvaluationPreview", productGroup: "M365SubstrateNonSemantic", model: "gpt-52-reasoning", env: "Dev", mode: "Interactive", gpuCount: 137, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6960566", submittedTime: "2026-02-10", targetDate: "", adoStatus: "Cut" },
+            // GPT-5.2 Rollout items (2026-02-12/13) - now BuildoutCompleted
+            { id: "65b09187-75e7-4006-b623-f50bf212df4a", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Declarative Agents Paid", featureName: "52 chat Paid SDF", featurePhase: "InternalEvaluationSDF", productGroup: "BizChatWork", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 26, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967110", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "b47e37e2-1852-41d0-9f04-a550c352aaee", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Declarative Agents Paid", featureName: "5.2 reasoning DA paid SDF", featurePhase: "InternalEvaluationSDF", productGroup: "BizChatWork", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 42, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967109", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "0f81b87f-4cfe-48be-89f7-92de45b5f14b", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Copilot Notebooks", featureName: "52 chat DA notebook SDF", featurePhase: "InternalEvaluationSDF", productGroup: "BizChatWork", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 15, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967102", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "689c2c5d-aedb-48c4-b22f-1b85dfe72a71", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Copilot Notebooks", featureName: "5.2 reasoning DA notebook SDF", featurePhase: "InternalEvaluationSDF", productGroup: "BizChatWork", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 23, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967101", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "5d3f5997-c5db-4644-a465-ded446a839fa", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Declarative Agents Paid", featureName: "5.2 chat da paid msit", featurePhase: "InternalEvaluationMSIT", productGroup: "BizChatWork", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 53, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967108", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "e880361f-5371-4170-b63e-e56bd12fa1db", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Declarative Agents Paid", featureName: "5.2 reasoning da paid msit", featurePhase: "InternalEvaluationMSIT", productGroup: "BizChatWork", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 88, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967106", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "1d90afe4-19c3-4351-9fd6-b4142eba9399", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Copilot Notebooks", featureName: "5.2chat notebook msit", featurePhase: "InternalEvaluationMSIT", productGroup: "BizChatWork", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 5, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967099", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "6b700b80-f139-4406-b837-89052d6bea9e", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Copilot Notebooks", featureName: "5.2 reasoning notebook msit", featurePhase: "InternalEvaluationMSIT", productGroup: "BizChatWork", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 12, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967095", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "5d76b131-b736-47b8-87a0-025b44df3952", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Declarative Agents Paid", featureName: "52 chat da paid ww", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 608, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967127", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "46674992-9f80-4b21-a24f-29656b3f9a85", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Declarative Agents Paid", featureName: "52 reasoning paid ww", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 628, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967130", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "7d1df03c-57ae-47c9-b508-ab3f4aa09106", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Copilot Notebooks", featureName: "52 chat da notebook ww", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "gpt-52-chat", env: "Prod", mode: "Interactive", gpuCount: 314, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967113", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "228d1de1-7f1c-4828-b9ad-18e65d7df9fc", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Copilot Notebooks", featureName: "52 reasoning da notebook ww", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "gpt-52-reasoning", env: "Prod", mode: "Interactive", gpuCount: 268, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967111", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "58c651db-1e8b-47cb-9f13-9cb03b6804ff", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Declarative Agents Paid", featureName: "52 chat sdf dev paid da", featurePhase: "InternalEvaluationSDF", productGroup: "BizChatWork", model: "gpt-52-chat", env: "Dev", mode: "Interactive", gpuCount: 383, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967105", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "449f308f-443a-43d3-9cfc-4ac8a66f9268", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Zhi Chen (zhic)", scenarioName: "Declarative Agents Paid", featureName: "52 reasoning da paid dev sdf", featurePhase: "InternalEvaluationSDF", productGroup: "BizChatWork", model: "gpt-52-reasoning", env: "Dev", mode: "Interactive", gpuCount: 477, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967104", submittedTime: "2026-01-22", targetDate: "", adoStatus: "Closed" },
+            { id: "20481958-cad0-4a25-854f-59f1b85228df", type: "LLM Inference", status: "BuildoutCompleted", submittedBy: "Neha Onkar", scenarioName: "Declarative Agents Paid", featureName: "Researcher for EU", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "deepresearch", env: "Prod", mode: "Interactive", gpuCount: 618, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6967264", submittedTime: "2026-02-11", targetDate: "2026-02-25", adoStatus: "Closed" },
+            // New InBuildout items from Feb 19 Kusto refresh - LlmInferenceCapacityRequests
+            { id: "fb684eef-3b7d-40ce-b04a-046470eb86e3", type: "LLM Inference", status: "InBuildout", submittedBy: "Gayathri Chandrasekaran", scenarioName: "Enterprise Sydney", featureName: "[PEAK, ID183] Scout 4.2 model for evaluating Workberry quality", featurePhase: "InternalEvaluationSDF", productGroup: "BizChatWork", model: "scout-4-2", env: "Prod", mode: "Interactive", gpuCount: 144, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970928", submittedTime: "2026-02-14", targetDate: "2026-02-23", adoStatus: "Committed" },
+            { id: "a64ce11a-da44-46b6-884d-adf9523fae81", type: "LLM Inference", status: "InBuildout", submittedBy: "Gayathri Chandrasekaran", scenarioName: "Enterprise Sydney", featureName: "[PEAK, ID184] Scout 5.2 model for evaluating Workberry quality", featurePhase: "InternalEvaluationSDF", productGroup: "BizChatWork", model: "scout-5-2", env: "Prod", mode: "Interactive", gpuCount: 144, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970929", submittedTime: "2026-02-14", targetDate: "2026-02-23", adoStatus: "Committed" },
+            { id: "69c78a50-dbc5-4328-990b-f8d4b8c398eb", type: "LLM Inference", status: "InBuildout", submittedBy: "Bojia Lin", scenarioName: "Suggestion Chip", featureName: "[PEAK, ID186] Turn N Suggestion Chips - Improve Agent Recommendation precision from 30% to 70%", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "gpt-41-nano-04-14", env: "Prod", mode: "Interactive", gpuCount: 40, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970930", submittedTime: "2026-02-14", targetDate: "2026-02-25", adoStatus: "Committed" },
+            { id: "1b078bdc-7206-4060-be78-4e62e7f3f8b7", type: "LLM Inference", status: "InBuildout", submittedBy: "Sarunas Marciuska", scenarioName: "LU For FactSim", featureName: "[PEAK, ID192] LU to rollout FactSim for Files (MSIT)", featurePhase: "InternalEvaluationMSIT", productGroup: "BizChatWork", model: "gpt-41-mini-04-14", env: "Prod", mode: "Interactive", gpuCount: 10, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970932", submittedTime: "2026-02-14", targetDate: "2026-02-25", adoStatus: "Committed" },
+            { id: "92542307-d947-41ed-98e5-febd92103232", type: "LLM Inference", status: "InBuildout", submittedBy: "Sarunas Marciuska", scenarioName: "Declarative Agent Embedding", featureName: "[PEAK, ID193] QA to FactSim for Files (MSIT)", featurePhase: "InternalEvaluationMSIT", productGroup: "BizChatWork", model: "text-embedding-3-small", env: "Prod", mode: "Interactive", gpuCount: 2, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970933", submittedTime: "2026-02-14", targetDate: "2026-02-25", adoStatus: "Committed" },
+            { id: "d83f88ca-f09c-4024-8851-805a322c1b38", type: "LLM Inference", status: "InBuildout", submittedBy: "Sarunas Marciuska", scenarioName: "Declarative Agent contextual chunking and embeddings", featureName: "[PEAK, ID194] Vectorization Rollout FactSim to MSIT", featurePhase: "InternalEvaluationMSIT", productGroup: "BizChatWork", model: "text-embedding-3-small", env: "Prod", mode: "Interactive", gpuCount: 306, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970923", submittedTime: "2026-02-14", targetDate: "2026-02-25", adoStatus: "Committed" },
+            { id: "78803f04-cc2a-4dde-bebd-1561172df786", type: "LLM Inference", status: "InBuildout", submittedBy: "Andrew Huang", scenarioName: "HVI Image Descriptions", featureName: "Cohere", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateSemanticIndex", model: "cohere-embed-v4", env: "Prod", mode: "Interactive", gpuCount: 60, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6981858", submittedTime: "2026-02-14", targetDate: "", adoStatus: "New" },
+            { id: "620272b2-a15e-45aa-9ab0-efb85f3af992", type: "LLM Inference", status: "InBuildout", submittedBy: "Andrew Huang", scenarioName: "Moments Semantic Search", featureName: "Moments Agent", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateSemanticIndex", model: "gpt-41-shortco-2025-04-14", env: "Prod", mode: "Interactive", gpuCount: 36, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6981862", submittedTime: "2026-02-14", targetDate: "2026-02-25", adoStatus: "Committed" },
+            { id: "997130a1-fc09-4fd9-b942-02fb8c6f0639", type: "LLM Inference", status: "InBuildout", submittedBy: "Andrew Huang", scenarioName: "Moments Semantic Search", featureName: "QRR", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateSemanticIndex", model: "text-embedding-3-small", env: "Prod", mode: "Interactive", gpuCount: 35, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6981866", submittedTime: "2026-02-14", targetDate: "2026-02-25", adoStatus: "Committed" },
+            { id: "ca7b884c-0f24-4c3b-9614-37123efbfb40", type: "LLM Inference", status: "InBuildout", submittedBy: "Andrew Huang", scenarioName: "Moments Semantic Search", featureName: "Moments semantic search", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateSemanticIndex", model: "text-embedding-3-small", env: "Prod", mode: "Interactive", gpuCount: 3, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6981868", submittedTime: "2026-02-14", targetDate: "2026-02-25", adoStatus: "Committed" },
+            { id: "f3c07d70-88d8-4a14-89ea-898a1cdc2ccf", type: "LLM Inference", status: "InBuildout", submittedBy: "Raga Venkatesan", scenarioName: "SLM WPR", featureName: "SLM based WPR", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "gpt-41-mini-04-14", env: "Prod", mode: "Interactive", gpuCount: 252, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970804", submittedTime: "2026-02-14", targetDate: "2026-02-20", adoStatus: "Committed" },
+            { id: "53b1e326-7125-4807-9c59-66604f311283", type: "LLM Inference", status: "InBuildout", submittedBy: "Xin Jin", scenarioName: "CWC_Paid", featureName: "SydneyBerry", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWeb", model: "sydneyberry-slot-a-ft", env: "Prod", mode: "Interactive", gpuCount: 240, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970925", submittedTime: "2026-02-14", targetDate: "2026-02-25", adoStatus: "Committed" },
+            { id: "18585183-07d8-4967-b16b-21f9fbeeb43d", type: "LLM Inference", status: "InBuildout", submittedBy: "Gautham Popuri", scenarioName: "Turing Copilot Memory", featureName: "Memory v2 & Plus", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWeb", model: "gpt-41-shortco-2025-04-14-responses", env: "Prod", mode: "Async", gpuCount: 7625, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970917", submittedTime: "2026-02-14", targetDate: "", adoStatus: "Committed" },
+            { id: "36e6d5cf-8f8a-4ced-a942-fd3f7011c41e", type: "LLM Inference", status: "InBuildout", submittedBy: "Gautham Popuri", scenarioName: "CWC_Paid", featureName: "RAI Model Hosting for M365 Copilot (Web + Work)", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWeb", model: "gpt-4o-mini-0718-reasoning4-swec-ml-ft", env: "Prod", mode: "Interactive", gpuCount: 784, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970920", submittedTime: "2026-02-14", targetDate: "2026-02-25", adoStatus: "Committed" },
+            { id: "ba67bf17-56e8-4ad9-a6fa-04700d2f69ac", type: "LLM Inference", status: "InBuildout", submittedBy: "Sergei Bekeshkin", scenarioName: "LUFT", featureName: "LU FTv5", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWork", model: "lu-ftv5-slot-a-ft", env: "Prod", mode: "Interactive", gpuCount: 384, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970922", submittedTime: "2026-02-14", targetDate: "2026-02-20", adoStatus: "Active" },
+            { id: "47cf7966-fa84-463c-a076-97ef4ce88234", type: "LLM Inference", status: "InBuildout", submittedBy: "Sanket Sinha", scenarioName: "CWC_SuggestionChips", featureName: "Turn N Suggestion Chips + Work Tab Nudge", featurePhase: "GeneralAvailabilityWW", productGroup: "BizChatWeb", model: "gpt-41-nano-sc-web-ft", env: "Prod", mode: "Interactive", gpuCount: 660, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6979701", submittedTime: "2026-02-14", targetDate: "2026-02-23", adoStatus: "Committed" },
+            // New InBuildout items from Feb 19 Kusto refresh - PolymerCapacityRequests
+            { id: "3f4d2b5b-bf24-4a5d-a49f-d7dde1e08b3c", type: "Polymer", status: "InBuildout", submittedBy: "Andrew Huang", scenarioName: "FBV8 Indexing", featureName: "Fbv8MimirIngestionTriton", featurePhase: "GeneralAvailabilityWW", productGroup: "M365SubstrateSemanticIndex", model: "FBV8", env: "-", mode: "-", gpuCount: 2826, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6981851", submittedTime: "2026-01-19", targetDate: "2026-03-31", adoStatus: "Proposed" },
+            { id: "cd8eb590-315a-44d5-9d62-62bbf84e1bce", type: "Polymer", status: "InBuildout", submittedBy: "Andrew Huang", scenarioName: "FBV8 query", featureName: "Fbv8MimirQueryTriton", featurePhase: "GeneralAvailabilityWW", productGroup: "M365SubstrateSemanticIndex", model: "FBV8", env: "-", mode: "-", gpuCount: 283, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6970924", submittedTime: "2026-01-19", targetDate: "2026-03-31", adoStatus: "Proposed" },
+            { id: "eec121b9-926e-486c-aa8b-9856481fb336", type: "Polymer", status: "InBuildout", submittedBy: "Andrew Huang", scenarioName: "Colbert RC1", featureName: "Fbv8MimirIngestionTriton", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateSemanticIndex", model: "FBV8 RC1", env: "-", mode: "-", gpuCount: 319, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6981852", submittedTime: "2026-02-04", targetDate: "2026-03-31", adoStatus: "Proposed" },
+            { id: "952f1886-f403-489c-b294-f3be2d612227", type: "Polymer", status: "InBuildout", submittedBy: "Andrew Huang", scenarioName: "Fine tuned FBV8", featureName: "Fbv8MimirIngestionTriton", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateSemanticIndex", model: "FT FBV8", env: "-", mode: "-", gpuCount: 200, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6981854", submittedTime: "2026-02-04", targetDate: "2026-03-31", adoStatus: "Proposed" },
+            { id: "4cb8bd65-48cb-463a-b3f8-eccc641115ae", type: "Polymer", status: "InBuildout", submittedBy: "Andrew Huang", scenarioName: "UMCO", featureName: "Meeting Object in Bizchat", featurePhase: "InternalEvaluationMSIT", productGroup: "M365SubstrateSemanticIndex", model: "FBV8", env: "-", mode: "-", gpuCount: 89, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6981857", submittedTime: "2026-02-04", targetDate: "2026-03-31", adoStatus: "Proposed" },
+            { id: "8c0c5941-3791-447f-9327-536cd3cb239f", type: "Polymer", status: "InBuildout", submittedBy: "Pavitraa Parthasarathy", scenarioName: "Copilot Chats Memory", featureName: "Copilot Chats Memory", featurePhase: "Development", productGroup: "M365SubstrateSemanticIndex", model: "FBV8", env: "-", mode: "-", gpuCount: 30, rank: 0, councilDecision: "PromoteToBuildoutFull", adoLink: "6981867", submittedTime: "2026-02-04", targetDate: "2026-03-31", adoStatus: "Proposed" }
+        ];
+
+        // DOM Elements
+        const tableBody = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const envFilter = document.getElementById('envFilter');
+        const productFilter = document.getElementById('productFilter');
+
+        // Format date for display
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // Get target date class based on date
+        function getTargetDateClass(dateStr) {
+            if (!dateStr) return 'na';
+            const today = new Date('2026-02-19');
+            const targetDate = new Date(dateStr);
+            const diffDays = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return 'overdue';
+            if (diffDays <= 3) return 'upcoming';
+            return 'on-track';
+        }
+
+        // Get status badge class
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'InBuildout': return 'status-inbuildout';
+                case 'BuildoutCompleted': return 'status-buildoutcompleted';
+                default: return '';
+            }
+        }
+
+        // Get ADO status badge class
+        function getAdoStatusBadgeClass(status) {
+            switch (status) {
+                case 'Closed': return 'status-closed';
+                case 'New': return 'status-new';
+                case 'Active': return 'status-active';
+                case 'Committed': return 'status-committed';
+                case 'Proposed': return 'status-proposed';
+                case 'Cut': return 'status-closed';
+                default: return '';
+            }
+        }
+
+        // Render table
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.type}</td>
+                    <td>${row.productGroup}</td>
+                    <td>${row.submittedBy}</td>
+                    <td><a href="https://substrate.microsoft.net/v2/llmApi/requests/${row.id}" class="action-link" target="_blank">${row.scenarioName}</a></td>
+                    <td>${row.featureName}</td>
+                    <td>${row.featurePhase}</td>
+                    <td><span class="env-badge env-${row.env.toLowerCase()}">${row.env}</span></td>
+                    <td class="gpu-count">${row.gpuCount}</td>
+                    <td>${row.model}</td>
+                    <td>${row.mode}</td>
+                    <td><span class="status-badge ${getStatusBadgeClass(row.status)}">${row.status}</span></td>
+                    <td><a href="https://o365exchange.visualstudio.com/O365%20Core/_workitems/edit/${row.adoLink}" class="ado-link" target="_blank">${row.adoLink}</a></td>
+                    <td class="target-date ${getTargetDateClass(row.targetDate)}">${row.targetDate ? formatDate(row.targetDate) : 'N/A'}</td>
+                    <td><span class="status-badge ${getAdoStatusBadgeClass(row.adoStatus)}">${row.adoStatus}</span></td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // Update summary counts
+            const inBuildout = data.filter(d => d.status === 'InBuildout').length;
+            const completed = data.filter(d => d.status === 'BuildoutCompleted').length;
+            const totalGpus = data.reduce((sum, d) => sum + d.gpuCount, 0);
+            
+            document.getElementById('totalRequests').textContent = data.length;
+            document.getElementById('totalGpus').textContent = totalGpus.toLocaleString();
+            document.getElementById('inBuildoutCount').textContent = inBuildout;
+            document.getElementById('completedCount').textContent = completed;
+        }
+
+        // Populate dropdown filters with unique values
+        function populateFilters() {
+            const columns = ['type', 'productGroup', 'submittedBy', 'scenarioName', 'featureName', 'featurePhase', 'env', 'gpuCount', 'model', 'mode', 'status', 'adoLink', 'targetDate', 'adoStatus'];
+            
+            columns.forEach(column => {
+                const select = document.querySelector(`.column-filter[data-column="${column}"]`);
+                if (!select) return;
+                
+                // Get unique values
+                const values = [...new Set(capacityData.map(row => {
+                    let val = row[column];
+                    if (val === null || val === undefined || val === '') return '';
+                    return String(val);
+                }))].filter(v => v !== '').sort();
+                
+                // Build options
+                select.innerHTML = '<option value="">All</option>';
+                values.forEach(val => {
+                    const option = document.createElement('option');
+                    option.value = val;
+                    option.textContent = val;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // Get all column filter values
+        function getColumnFilters() {
+            const filters = {};
+            document.querySelectorAll('.column-filter').forEach(select => {
+                const column = select.dataset.column;
+                const value = select.value.trim().toLowerCase();
+                if (value) {
+                    filters[column] = value;
+                }
+            });
+            return filters;
+        }
+
+        // Filter data based on all column filters
+        function filterData() {
+            const filters = getColumnFilters();
+
+            let filtered = capacityData.filter(row => {
+                for (const [column, filterValue] of Object.entries(filters)) {
+                    let cellValue = row[column];
+                    
+                    // Handle different data types
+                    if (cellValue === null || cellValue === undefined) {
+                        cellValue = '';
+                    } else if (typeof cellValue === 'number') {
+                        cellValue = cellValue.toString();
+                    } else {
+                        cellValue = cellValue.toString();
+                    }
+                    
+                    // Exact match for dropdown filters
+                    if (cellValue.toLowerCase() !== filterValue) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            renderTable(filtered);
+        }
+
+        // Clear all filters
+        function clearAllFilters() {
+            document.querySelectorAll('.column-filter').forEach(select => {
+                select.value = '';
+            });
+            filterData();
+        }
+
+        // Sort by column
+        function sortByColumn(column) {
+            if (sortColumn === column) {
+                sortAsc = !sortAsc;
+            } else {
+                sortColumn = column;
+                sortAsc = true;
+            }
+
+            const filters = getColumnFilters();
+            let dataToSort = capacityData.filter(row => {
+                for (const [col, filterValue] of Object.entries(filters)) {
+                    let cellValue = row[col];
+                    if (cellValue === null || cellValue === undefined) cellValue = '';
+                    if (cellValue.toString().toLowerCase() !== filterValue) return false;
+                }
+                return true;
+            });
+
+            const sortedData = [...dataToSort].sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+                
+                if (column === 'gpuCount' || column === 'rank') {
+                    aVal = Number(aVal) || 0;
+                    bVal = Number(bVal) || 0;
+                } else if (column === 'targetDate') {
+                    aVal = aVal ? new Date(aVal).getTime() : 0;
+                    bVal = bVal ? new Date(bVal).getTime() : 0;
+                } else {
+                    aVal = (aVal || '').toString().toLowerCase();
+                    bVal = (bVal || '').toString().toLowerCase();
+                }
+
+                if (aVal < bVal) return sortAsc ? -1 : 1;
+                if (aVal > bVal) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            renderTable(sortedData);
+        }
+
+        // Sorting
+        let sortColumn = '';
+        let sortAsc = true;
+
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                const column = th.dataset.sort;
+                if (sortColumn === column) {
+                    sortAsc = !sortAsc;
+                } else {
+                    sortColumn = column;
+                    sortAsc = true;
+                }
+
+                const sortedData = [...capacityData].sort((a, b) => {
+                    let aVal = a[column];
+                    let bVal = b[column];
+                    
+                    if (column === 'gpuCount' || column === 'rank') {
+                        aVal = Number(aVal);
+                        bVal = Number(bVal);
+                    } else if (column === 'targetDate' || column === 'submittedTime') {
+                        aVal = aVal ? new Date(aVal).getTime() : 0;
+                        bVal = bVal ? new Date(bVal).getTime() : 0;
+                    }
+
+                    if (aVal < bVal) return sortAsc ? -1 : 1;
+                    if (aVal > bVal) return sortAsc ? 1 : -1;
+                    return 0;
+                });
+
+                renderTable(sortedData);
+            });
+        });
+
+        // Initial render
+        populateFilters();
+        renderTable(capacityData);
+
+        // ========================================
+        // MSAL Configuration for Azure AD Auth
+        // ========================================
+        const msalConfig = {
+            auth: {
+                clientId: '1950a258-227b-4e31-a9cf-717495945fc2', // Azure CLI client ID (works for dev)
+                authority: 'https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47', // Microsoft tenant
+                redirectUri: window.location.origin + window.location.pathname
+            },
+            cache: {
+                cacheLocation: 'sessionStorage',
+                storeAuthStateInCookie: false
+            }
+        };
+
+        let msalInstance = null;
+        let kustoToken = null;
+        let adoToken = null;
+
+        // Initialize MSAL
+        async function initMsal() {
+            try {
+                msalInstance = new msal.PublicClientApplication(msalConfig);
+                await msalInstance.initialize();
+                
+                // Check for existing account
+                const accounts = msalInstance.getAllAccounts();
+                if (accounts.length > 0) {
+                    updateAuthStatus(true, accounts[0].username);
+                }
+            } catch (error) {
+                console.error('MSAL init error:', error);
+            }
+        }
+
+        // Update auth status UI
+        function updateAuthStatus(authenticated, username = '') {
+            const authStatus = document.getElementById('authStatus');
+            const authText = document.getElementById('authText');
+            
+            if (authenticated) {
+                authStatus.classList.add('authenticated');
+                authText.textContent = `Signed in as ${username}`;
+            } else {
+                authStatus.classList.remove('authenticated');
+                authText.textContent = 'Not authenticated';
+            }
+        }
+
+        // Get token for Kusto
+        async function getKustoToken() {
+            const kustoScope = 'https://help.kusto.windows.net/.default';
+            try {
+                const accounts = msalInstance.getAllAccounts();
+                if (accounts.length > 0) {
+                    const response = await msalInstance.acquireTokenSilent({
+                        scopes: [kustoScope],
+                        account: accounts[0]
+                    });
+                    return response.accessToken;
+                } else {
+                    const response = await msalInstance.acquireTokenPopup({
+                        scopes: [kustoScope]
+                    });
+                    updateAuthStatus(true, response.account.username);
+                    return response.accessToken;
+                }
+            } catch (error) {
+                console.error('Kusto token error:', error);
+                const response = await msalInstance.acquireTokenPopup({
+                    scopes: [kustoScope]
+                });
+                updateAuthStatus(true, response.account.username);
+                return response.accessToken;
+            }
+        }
+
+        // Get token for ADO
+        async function getAdoToken() {
+            const adoScope = '499b84ac-1321-427f-aa17-267ca6975798/.default'; // Azure DevOps
+            try {
+                const accounts = msalInstance.getAllAccounts();
+                if (accounts.length > 0) {
+                    const response = await msalInstance.acquireTokenSilent({
+                        scopes: [adoScope],
+                        account: accounts[0]
+                    });
+                    return response.accessToken;
+                } else {
+                    const response = await msalInstance.acquireTokenPopup({
+                        scopes: [adoScope]
+                    });
+                    return response.accessToken;
+                }
+            } catch (error) {
+                console.error('ADO token error:', error);
+                const response = await msalInstance.acquireTokenPopup({
+                    scopes: [adoScope]
+                });
+                return response.accessToken;
+            }
+        }
+
+        // Query Kusto
+        async function queryKusto(token) {
+            const query = `LlmInferenceCapacityRequests | where Status in ('InBuildout', 'BuildoutCompleted') | project Id, Type, Status, SubmittedByName, ScenarioName, FeatureName, FeaturePhase, ProductGroup, ModelName, Environment, Mode, TotalGPU, TotalRequestedGpuCount, ChampRank, CouncilDecision, AdoLink, SubmittedTime, LastModifiedTime`;
+            
+            const response = await fetch('https://polymer.centralus.kusto.windows.net/v1/rest/query', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    db: 'polymerdb',
+                    csl: query
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Kusto query failed: ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        // Query ADO for work items
+        async function queryAdo(token, workItemIds) {
+            const batchSize = 200;
+            const allWorkItems = [];
+            
+            for (let i = 0; i < workItemIds.length; i += batchSize) {
+                const batch = workItemIds.slice(i, i + batchSize);
+                const idsParam = batch.join(',');
+                
+                const response = await fetch(
+                    `https://o365exchange.visualstudio.com/O365%20Core/_apis/wit/workitems?ids=${idsParam}&fields=System.Id,System.Title,System.State,Microsoft.VSTS.Scheduling.TargetDate&api-version=7.0`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.value) {
+                        allWorkItems.push(...data.value);
+                    }
+                }
+            }
+
+            return allWorkItems;
+        }
+
+        // Parse Kusto response
+        function parseKustoResponse(kustoData) {
+            const tables = kustoData.Tables || kustoData;
+            if (!tables || !tables[0]) return [];
+            
+            const table = tables[0];
+            const columns = table.Columns.map(c => c.ColumnName);
+            const rows = table.Rows;
+            
+            return rows.map(row => {
+                const obj = {};
+                columns.forEach((col, i) => {
+                    obj[col] = row[i];
+                });
+                return obj;
+            });
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                toast.className = 'toast';
+                document.body.appendChild(toast);
+            }
+            
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            
+            setTimeout(() => toast.classList.add('visible'), 10);
+            setTimeout(() => toast.classList.remove('visible'), 4000);
+        }
+
+        // Show/hide loading overlay
+        function showLoading(show, text = 'Loading...') {
+            let overlay = document.getElementById('loadingOverlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'loadingOverlay';
+                overlay.className = 'loading-overlay';
+                overlay.innerHTML = `
+                    <div class="large-spinner"></div>
+                    <div class="loading-text">Loading...</div>
+                `;
+                document.body.appendChild(overlay);
+            }
+            
+            overlay.querySelector('.loading-text').textContent = text;
+            overlay.classList.toggle('visible', show);
+        }
+
+        // Main refresh function
+        async function refreshData() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('loading');
+            refreshBtn.disabled = true;
+            
+            try {
+                showLoading(true, 'Authenticating...');
+                
+                // Initialize MSAL if needed
+                if (!msalInstance) {
+                    await initMsal();
+                }
+                
+                // Get tokens
+                showLoading(true, 'Getting authentication tokens...');
+                const kustoToken = await getKustoToken();
+                const adoToken = await getAdoToken();
+                
+                // Query Kusto
+                showLoading(true, 'Querying Kusto for capacity requests...');
+                const kustoData = await queryKusto(kustoToken);
+                const kustoRecords = parseKustoResponse(kustoData);
+                
+                if (kustoRecords.length === 0) {
+                    throw new Error('No records returned from Kusto');
+                }
+                
+                // Extract ADO IDs
+                const adoIds = kustoRecords
+                    .map(r => r.AdoLink)
+                    .filter(id => id && id !== '' && !isNaN(parseInt(id)))
+                    .map(id => parseInt(id));
+                
+                // Query ADO
+                showLoading(true, `Fetching ${adoIds.length} ADO work items...`);
+                const adoWorkItems = await queryAdo(adoToken, adoIds);
+                
+                // Create ADO lookup
+                const adoLookup = {};
+                adoWorkItems.forEach(wi => {
+                    adoLookup[wi.id] = {
+                        state: wi.fields['System.State'],
+                        targetDate: wi.fields['Microsoft.VSTS.Scheduling.TargetDate']
+                    };
+                });
+                
+                // Transform data
+                showLoading(true, 'Processing data...');
+                const newData = kustoRecords.map(r => {
+                    const adoId = r.AdoLink;
+                    const adoInfo = adoLookup[adoId] || {};
+                    
+                    return {
+                        id: r.Id,
+                        type: r.Type,
+                        status: r.Status,
+                        submittedBy: r.SubmittedByName,
+                        scenarioName: r.ScenarioName,
+                        featureName: r.FeatureName,
+                        featurePhase: r.FeaturePhase,
+                        productGroup: r.ProductGroup,
+                        model: r.ModelName,
+                        env: r.Environment,
+                        mode: r.Mode,
+                        gpuCount: r.TotalRequestedGpuCount || r.TotalGPU || 0,
+                        rank: r.ChampRank || 0,
+                        councilDecision: r.CouncilDecision,
+                        adoLink: adoId,
+                        submittedTime: r.SubmittedTime ? r.SubmittedTime.split('T')[0] : '',
+                        targetDate: adoInfo.targetDate ? adoInfo.targetDate.split('T')[0] : '',
+                        adoStatus: adoInfo.state || 'Unknown'
+                    };
+                });
+                
+                // Update global data
+                capacityData.length = 0;
+                capacityData.push(...newData);
+                
+                // Re-render table
+                filterData();
+                
+                // Update last refresh time
+                const now = new Date();
+                document.getElementById('lastRefresh').textContent = now.toLocaleString();
+                
+                showLoading(false);
+                showToast(`Successfully loaded ${newData.length} capacity requests`, 'success');
+                
+            } catch (error) {
+                console.error('Refresh error:', error);
+                showLoading(false);
+                showToast(`Error: ${error.message}`, 'error');
+            } finally {
+                refreshBtn.classList.remove('loading');
+                refreshBtn.disabled = false;
+            }
+        }
+
+        // Initialize MSAL on page load
+        initMsal();
+    </script>
+</body>
+</html>
