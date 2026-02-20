@@ -1444,27 +1444,6 @@
 
         // Initialize MSAL on page load
         initMsal();
-
-        // Auto-refresh every 10 minutes (600000 ms)
-        const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000;
-        let autoRefreshTimer = null;
-        let nextRefreshTime = null;
-
-        function startAutoRefresh() {
-            if (autoRefreshTimer) clearInterval(autoRefreshTimer);
-            
-            nextRefreshTime = new Date(Date.now() + AUTO_REFRESH_INTERVAL);
-            autoRefreshTimer = setInterval(() => {
-                console.log('Auto-refreshing data...');
-                refreshData();
-                nextRefreshTime = new Date(Date.now() + AUTO_REFRESH_INTERVAL);
-            }, AUTO_REFRESH_INTERVAL);
-            
-            console.log('Auto-refresh enabled: every 10 minutes');
-        }
-
-        // Start auto-refresh on page load
-        startAutoRefresh();
     </script>
 </body>
 </html>
