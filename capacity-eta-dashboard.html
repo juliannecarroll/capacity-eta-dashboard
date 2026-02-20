@@ -669,26 +669,6 @@
 
     <!-- Main content -->
     <div class="main-container">
-        <!-- Summary bar -->
-        <div class="summary-bar">
-            <div class="summary-item">
-                <span class="summary-label">Total Requests:</span>
-                <span class="summary-value" id="totalRequests">92</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Requested GPUs:</span>
-                <span class="summary-value" id="totalGpus">18,272</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">In Buildout:</span>
-                <span class="summary-value" id="inBuildoutCount">27</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Buildout Completed:</span>
-                <span class="summary-value" id="completedCount">66</span>
-            </div>
-        </div>
-
         <!-- Filter bar -->
         <div class="filter-bar">
             <button class="clear-filters-btn" onclick="clearAllFilters()">Clear All Filters</button>
@@ -751,18 +731,7 @@
                                 <select class="column-filter" data-column="featureName" onchange="filterData()"></select>
                             </div>
                         </th>
-                        <th class="sortable" data-sort="featurePhase">
-                            <div class="th-content">
-                                <span class="th-label" onclick="sortByColumn('featurePhase')">Feature Phase ↕</span>
-                                <select class="column-filter" data-column="featurePhase" onchange="filterData()"></select>
-                            </div>
-                        </th>
-                        <th class="sortable" data-sort="env">
-                            <div class="th-content">
-                                <span class="th-label" onclick="sortByColumn('env')">Env ↕</span>
-                                <select class="column-filter" data-column="env" onchange="filterData()"></select>
-                            </div>
-                        </th>
+
                         <th class="sortable" data-sort="gpuCount">
                             <div class="th-content">
                                 <span class="th-label" onclick="sortByColumn('gpuCount')">A100E ↕</span>
@@ -995,8 +964,6 @@
                     <td>${row.submittedBy}</td>
                     <td><a href="https://substrate.microsoft.net/v2/llmApi/requests/${row.id}" class="action-link" target="_blank">${row.scenarioName}</a></td>
                     <td>${row.featureName}</td>
-                    <td>${row.featurePhase}</td>
-                    <td><span class="env-badge env-${row.env.toLowerCase()}">${row.env}</span></td>
                     <td class="gpu-count">${row.gpuCount}</td>
                     <td>${row.model}</td>
                     <td>${row.mode}</td>
@@ -1008,20 +975,11 @@
                 tableBody.appendChild(tr);
             });
 
-            // Update summary counts
-            const inBuildout = data.filter(d => d.status === 'InBuildout').length;
-            const completed = data.filter(d => d.status === 'BuildoutCompleted').length;
-            const totalGpus = data.reduce((sum, d) => sum + d.gpuCount, 0);
-            
-            document.getElementById('totalRequests').textContent = data.length;
-            document.getElementById('totalGpus').textContent = totalGpus.toLocaleString();
-            document.getElementById('inBuildoutCount').textContent = inBuildout;
-            document.getElementById('completedCount').textContent = completed;
         }
 
         // Populate dropdown filters with unique values
         function populateFilters() {
-            const columns = ['type', 'productGroup', 'submittedBy', 'scenarioName', 'featureName', 'featurePhase', 'env', 'gpuCount', 'model', 'mode', 'status', 'adoLink', 'targetDate', 'adoStatus'];
+            const columns = ['type', 'productGroup', 'submittedBy', 'scenarioName', 'featureName', 'gpuCount', 'model', 'mode', 'status', 'adoLink', 'targetDate', 'adoStatus'];
             
             columns.forEach(column => {
                 const select = document.querySelector(`.column-filter[data-column="${column}"]`);
