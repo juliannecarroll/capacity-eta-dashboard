@@ -1,6 +1,8 @@
 import json, re, os
+from datetime import datetime
 
 DASHBOARD = os.path.expanduser("~/capacity-eta-dashboard/capacity-eta-dashboard.html")
+ADO_RESULTS = os.path.expanduser("~/capacity-eta-dashboard/ado_results.json")
 
 # Kusto data columns (in order)
 COLS = ["Id","Type","Status","SubmittedByName","ScenarioName","FeatureName","FeaturePhase","ProductGroup","ModelName","Environment","Mode","TotalGPU","TotalRequestedGpuCount","ChampRank","CouncilDecision","AdoLink","SubmittedTime","LastModifiedTime"]
@@ -13,14 +15,28 @@ with open(os.path.expanduser("~/capacity-eta-dashboard/kusto_data.json"), "r", e
 with open(DASHBOARD, "r", encoding="utf-8") as f:
     html = f.read()
 
-# Extract existing capacityData entries for adoStatus/targetDate lookup
+# Extract existing capacityData entries for adoStatus/targetDate lookup (fallback)
 ado_lookup = {}
 pattern = r'adoLink:\s*"(\d+)".*?targetDate:\s*"([^"]*)".*?adoStatus:\s*"([^"]*)"'
 for m in re.finditer(pattern, html):
     ado_id, target_date, ado_status = m.group(1), m.group(2), m.group(3)
     ado_lookup[ado_id] = {"targetDate": target_date, "adoStatus": ado_status}
 
-print(f"Found {len(ado_lookup)} existing ADO entries in dashboard")
+print(f"Found {len(ado_lookup)} existing ADO entries in dashboard HTML")
+
+# Override with fresh ADO results if available
+ado_fresh = {}
+if os.path.exists(ADO_RESULTS):
+    with open(ADO_RESULTS, "r", encoding="utf-8") as f:
+        ado_fresh = json.load(f)
+    print(f"Loaded {len(ado_fresh)} fresh ADO statuses from ado_results.json")
+    for ado_id, info in ado_fresh.items():
+        ado_lookup[ado_id] = {
+            "targetDate": info.get("targetDate", ""),
+            "adoStatus": info.get("state", "New")
+        }
+else:
+    print("No ado_results.json found - using existing ADO statuses from HTML")
 
 # Transform Kusto rows to dashboard format
 new_entries = []
@@ -86,7 +102,16 @@ new_html = html[:start_idx] + new_data_js + html[end_idx:]
 with open(DASHBOARD, "w", encoding="utf-8") as f:
     f.write(new_html)
 
-print(f"Dashboard updated with {len(new_entries)} records!")
+# Update footer date
+today_str = datetime.now().strftime("%B %d, %Y").replace(" 0", " ")  # e.g. "March 3, 2026"
+footer_pattern = r'(LLM API Capacity Request ETA Dashboard \| Last Updated: )[^<]+'
+new_html_final = re.sub(footer_pattern, rf'\g<1>{today_str}', new_html)
+if new_html_final != new_html:
+    with open(DASHBOARD, "w", encoding="utf-8") as f:
+        f.write(new_html_final)
+    print(f"Footer updated: Last Updated: {today_str}")
+
+print(f"\nDashboard updated with {len(new_entries)} records!")
 print(f"Status breakdown:")
 from collections import Counter
 statuses = Counter(e["status"] for e in new_entries)
