@@ -388,16 +388,28 @@
                     <option value="GPT-4o">GPT-4o</option>
                     <option value="GPT-4o mini">GPT-4o mini</option>
                     <option value="4o Image Gen">4o Image Gen</option>
-                    <option value="GPT-4.1">GPT-4.1</option>
+                    <option value="GPT-4.1">GPT-4.1 (shortco)</option>
+                    <option value="GPT-4.1 longco">GPT-4.1 (longco)</option>
                     <option value="GPT-4.1 mini">GPT-4.1 mini</option>
                     <option value="GPT-4.1 nano">GPT-4.1 nano</option>
-                    <option value="GPT-5.1" selected>GPT-5.1</option>
-                    <option value="GPT-5.2">GPT-5.2</option>
+                    <option value="GPT-5.1 chat" selected>GPT-5.1 chat</option>
+                    <option value="GPT-5.1 reasoning">GPT-5.1 reasoning</option>
+                    <option value="GPT-5.2 chat">GPT-5.2 chat</option>
+                    <option value="GPT-5.2 reasoning">GPT-5.2 reasoning</option>
+                    <option value="GPT-5 chat">GPT-5 chat</option>
+                    <option value="GPT-5 reasoning">GPT-5 reasoning</option>
                     <option value="GPT-5 mini">GPT-5 mini</option>
-                    <option value="o1">o1</option>
                     <option value="o3">o3</option>
                     <option value="o3-mini">o3-mini</option>
                     <option value="o4-mini">o4-mini</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="tierSelect">Endpoint Tier</label>
+                <select id="tierSelect" onchange="onModelChange()">
+                    <option value="standard" selected>Standard</option>
+                    <option value="premium">Premium</option>
+                    <option value="async">Async</option>
                 </select>
             </div>
             <div class="field">
@@ -405,7 +417,7 @@
                 <input type="text" id="outMultDisplay" readonly style="background:#f3f2f1;color:#0078d4;font-weight:600;max-width:80px;">
             </div>
             <div class="field">
-                <label>TPM/GPU (A100)</label>
+                <label>TPM/GPU (A100e)</label>
                 <input type="text" id="tpmGpuDisplay" readonly style="background:#f3f2f1;max-width:110px;">
             </div>
         </div>
@@ -451,7 +463,7 @@
                 Effective TPM = RPM × (Input + Output)
             </div>
             <div class="gpu-hero">
-                <div class="label">A100 GPUs Required</div>
+                <div class="label">A100e GPUs Required</div>
                 <div class="number current-num" id="currentGPU">—</div>
                 <div class="unit">GPUs</div>
             </div>
@@ -476,7 +488,7 @@
                 Effective TPM = RPM × (Input + <strong id="subtitleMult">8</strong> × Output)
             </div>
             <div class="gpu-hero">
-                <div class="label">A100 GPUs Required</div>
+                <div class="label">A100e GPUs Required</div>
                 <div class="number weighted-num" id="weightedGPU">—</div>
                 <div class="unit">GPUs</div>
             </div>
@@ -506,17 +518,25 @@
             <p style="font-size:13px;color:#605e5c;margin-bottom:12px;">
                 <strong>Current calculator</strong> (left): Effective TPM = RPM × (Input + Output). GPU = ⌈ Effective TPM ÷ TPM/GPU ⌉.<br>
                 <strong>Weighted calculator</strong> (right): Effective TPM = RPM × (Input + Multiplier × Output). GPU = ⌈ Effective TPM ÷ TPM/GPU ⌉.<br><br>
+                <strong>🔗 Benchmark source:</strong> <code>GetModelOperatingPoints()</code> from Kusto
+                (<code>inferencedashboardlog.westus2 / LLMAPI</code>, UtilizationMode = <code>p95tpm</code>).
+                These are the <strong>same operating points</strong> used by the
+                <a href="https://substrate.microsoft.net/v2/llmApi/costCalculator" target="_blank">substrate cost calculator</a>.
+                Data queried 2026-03-04.<br><br>
                 Output multipliers from <a href="https://openai.com/api/pricing/" target="_blank">OpenAI pricing</a> (output $/M ÷ input $/M).
                 GPT-5.x / reasoning → <strong>8×</strong>. GPT-4.x → <strong>4×</strong>.
                 Per Anna's follow-up: 5.1/5.2 chat &amp; reasoning → 8×, 4.1 short-co → 4×.<br>
-                TPM/GPU benchmarks: illustrative A100e throughput. Cost: <strong>$36.50/GPU/day</strong>.
+                Cost: <strong>$36.50/GPU/day</strong> (A100e uniform).
             </p>
             <table class="assumptions-table" id="assumptionsTable">
                 <thead>
                     <tr>
                         <th>Model</th>
+                        <th>Kusto Model Name</th>
                         <th>Output Multiplier</th>
-                        <th>TPM/GPU (A100)</th>
+                        <th>TPM/GPU Standard</th>
+                        <th>TPM/GPU Premium</th>
+                        <th>TPM/GPU Async</th>
                         <th>$/GPU/Day</th>
                     </tr>
                 </thead>
@@ -547,7 +567,7 @@
     </details>
 
     <div class="footer">
-        GPU Calculator Comparison v3.0 — GPU Team &amp; LLM API Capacity Planning — March 2026
+        GPU Calculator Comparison v4.0 — Benchmarks from Kusto <code>GetModelOperatingPoints()</code> — GPU Team &amp; LLM API Capacity Planning — March 2026
     </div>
 </div>
 
@@ -555,25 +575,50 @@
 <!-- ═══ JAVASCRIPT ════════════════════════════════ -->
 <!-- ═══════════════════════════════════════════════ -->
 <script>
+// ══════════════════════════════════════════════════════════════
+// BENCHMARK SOURCE: Kusto GetModelOperatingPoints()
+//   Cluster: inferencedashboardlog.westus2
+//   Database: LLMAPI
+//   UtilizationMode: p95tpm
+//   Queried: 2026-03-04
+//
+// These are the SAME operating points used by the substrate
+// cost calculator at substrate.microsoft.net/v2/llmApi/costCalculator.
+// Values represent PerA100eGPUOperatingPoint per CostEndpointType.
+// ══════════════════════════════════════════════════════════════
 const MODEL_CONFIG = {
-    'GPT-4o':       { mult: 4, tpmPerGPU: 35000,  costPerDay: 36.50 },
-    'GPT-4o mini':  { mult: 4, tpmPerGPU: 100000, costPerDay: 36.50 },
-    '4o Image Gen': { mult: 1, tpmPerGPU: 5000,   costPerDay: 36.50 },
-    'GPT-4.1':      { mult: 4, tpmPerGPU: 40000,  costPerDay: 36.50 },
-    'GPT-4.1 mini': { mult: 4, tpmPerGPU: 120000, costPerDay: 36.50 },
-    'GPT-4.1 nano': { mult: 4, tpmPerGPU: 300000, costPerDay: 36.50 },
-    'GPT-5.1':      { mult: 8, tpmPerGPU: 20000,  costPerDay: 36.50 },
-    'GPT-5.2':      { mult: 8, tpmPerGPU: 15000,  costPerDay: 36.50 },
-    'GPT-5 mini':   { mult: 8, tpmPerGPU: 50000,  costPerDay: 36.50 },
-    'o1':           { mult: 4, tpmPerGPU: 12000,  costPerDay: 36.50 },
-    'o3':           { mult: 8, tpmPerGPU: 10000,  costPerDay: 36.50 },
-    'o3-mini':      { mult: 4, tpmPerGPU: 50000,  costPerDay: 36.50 },
-    'o4-mini':      { mult: 4, tpmPerGPU: 55000,  costPerDay: 36.50 }
+    'GPT-4o':             { mult: 4, kustoName: 'gpt-4o-11-20',              tpm: { standard: 88625,   premium: 42625,   async: 100875  }, costPerDay: 36.50 },
+    'GPT-4o mini':        { mult: 4, kustoName: 'gpt-4o-mini-2024-07-18',   tpm: { standard: 2450000, premium: 1600000, async: 3000000 }, costPerDay: 36.50 },
+    '4o Image Gen':       { mult: 1, kustoName: '4o Image Gen',             tpm: { standard: 15761,   premium: 15761,   async: 24920   }, costPerDay: 36.50 },
+    'GPT-4.1':            { mult: 4, kustoName: 'gpt-41-shortco-2025-04-14',tpm: { standard: 98750,   premium: 45000,   async: 123714  }, costPerDay: 36.50 },
+    'GPT-4.1 longco':     { mult: 4, kustoName: 'gpt-41-longco-2025-04-14', tpm: { standard: 17972,   premium: 3456,    async: 46082   }, costPerDay: 36.50 },
+    'GPT-4.1 mini':       { mult: 4, kustoName: 'gpt-41-mini-04-14',        tpm: { standard: 666666,  premium: 48000,   async: 786666  }, costPerDay: 36.50 },
+    'GPT-4.1 nano':       { mult: 4, kustoName: 'gpt-41-nano-04-14',        tpm: { standard: 785000,  premium: 375000,  async: 1370000 }, costPerDay: 36.50 },
+    'GPT-5.1 chat':       { mult: 8, kustoName: 'gpt-51-chat',              tpm: { standard: 48000,   premium: 84174,   async: 80000   }, costPerDay: 36.50 },
+    'GPT-5.1 reasoning':  { mult: 8, kustoName: 'gpt-51-reasoning',         tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
+    'GPT-5.2 chat':       { mult: 8, kustoName: 'gpt-52-chat',              tpm: { standard: 36830,   premium: 11140,   async: 43506   }, costPerDay: 36.50 },
+    'GPT-5.2 reasoning':  { mult: 8, kustoName: 'gpt-52-reasoning',         tpm: { standard: 36830,   premium: 11140,   async: 36830   }, costPerDay: 36.50 },
+    'GPT-5 chat':         { mult: 8, kustoName: 'gpt-5-chat-2025-10-03',    tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
+    'GPT-5 reasoning':    { mult: 8, kustoName: 'gpt-5-reasoning',          tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
+    'GPT-5 mini':         { mult: 8, kustoName: 'gpt-5-mini',               tpm: { standard: 287500,  premium: 69600,   async: 685800  }, costPerDay: 36.50 },
+    'o3':                 { mult: 8, kustoName: 'o3-2025-04-16',            tpm: { standard: 65000,   premium: 30000,   async: 80000   }, costPerDay: 36.50 },
+    'o3-mini':            { mult: 4, kustoName: 'gpt-o3-mini',              tpm: { standard: 281250,  premium: 281250,  async: 331250  }, costPerDay: 36.50 },
+    'o4-mini':            { mult: 4, kustoName: 'o4-mini',                  tpm: { standard: 34880,   premium: 18666,   async: 60266   }, costPerDay: 36.50 }
 };
 
 let wlCounter = 0;
 
-function getCfg() { return MODEL_CONFIG[document.getElementById('modelSelect').value]; }
+function getCfg() {
+    const model = MODEL_CONFIG[document.getElementById('modelSelect').value];
+    const tier = document.getElementById('tierSelect').value;
+    return {
+        mult: model.mult,
+        tpmPerGPU: model.tpm[tier],
+        costPerDay: model.costPerDay,
+        kustoName: model.kustoName,
+        tier: tier
+    };
+}
 
 // ── Init ──
 function init() {
@@ -766,13 +811,20 @@ function generateMath(model, c, wls, currentRows, weightedRows, totalCurrent, to
 // ── Assumptions table ──
 function renderAssumptions() {
     const tbody = document.getElementById('assumptionsBody');
+    const tier = document.getElementById('tierSelect').value;
     tbody.innerHTML = '';
     Object.entries(MODEL_CONFIG).forEach(([name, c]) => {
         const tr = document.createElement('tr');
+        const stdBold = tier === 'standard' ? 'font-weight:700;' : '';
+        const premBold = tier === 'premium' ? 'font-weight:700;' : '';
+        const asyncBold = tier === 'async' ? 'font-weight:700;' : '';
         tr.innerHTML = `
             <td><strong>${name}</strong></td>
+            <td style="font-family:monospace;font-size:12px;color:#605e5c;">${c.kustoName}</td>
             <td style="color:#0078d4;font-weight:600;">${c.mult}×</td>
-            <td>${c.tpmPerGPU.toLocaleString()}</td>
+            <td style="${stdBold}">${c.tpm.standard.toLocaleString()}</td>
+            <td style="${premBold}">${c.tpm.premium.toLocaleString()}</td>
+            <td style="${asyncBold}">${c.tpm.async.toLocaleString()}</td>
             <td>$${c.costPerDay.toFixed(2)}</td>
         `;
         tbody.appendChild(tr);
