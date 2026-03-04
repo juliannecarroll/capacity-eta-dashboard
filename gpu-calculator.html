@@ -385,22 +385,24 @@
             <div class="field">
                 <label for="modelSelect">Model</label>
                 <select id="modelSelect" onchange="onModelChange()">
-                    <option value="GPT-4o">GPT-4o</option>
-                    <option value="GPT-4o mini">GPT-4o mini</option>
+                    <option value="gpt-4o-11-20">gpt-4o-11-20</option>
+                    <option value="gpt-4o-mini-2024-07-18">gpt-4o-mini</option>
                     <option value="4o Image Gen">4o Image Gen</option>
-                    <option value="GPT-4.1">GPT-4.1 (shortco)</option>
-                    <option value="GPT-4.1 longco">GPT-4.1 (longco)</option>
-                    <option value="GPT-4.1 mini">GPT-4.1 mini</option>
-                    <option value="GPT-4.1 nano">GPT-4.1 nano</option>
-                    <option value="GPT-5.1 chat" selected>GPT-5.1 chat</option>
-                    <option value="GPT-5.1 reasoning">GPT-5.1 reasoning</option>
-                    <option value="GPT-5.2 chat">GPT-5.2 chat</option>
-                    <option value="GPT-5.2 reasoning">GPT-5.2 reasoning</option>
-                    <option value="GPT-5 chat">GPT-5 chat</option>
-                    <option value="GPT-5 reasoning">GPT-5 reasoning</option>
-                    <option value="GPT-5 mini">GPT-5 mini</option>
-                    <option value="o3">o3</option>
-                    <option value="o3-mini">o3-mini</option>
+                    <option value="gpt-41-shortco-2025-04-14">gpt-4.1 (shortco)</option>
+                    <option value="gpt-41-longco-2025-04-14">gpt-4.1 (longco)</option>
+                    <option value="gpt-41-mini-04-14">gpt-4.1 mini</option>
+                    <option value="gpt-41-nano-04-14">gpt-4.1 nano</option>
+                    <option value="gpt-5-chat-jj" selected>gpt-5-chat-jj</option>
+                    <option value="gpt-5-chat-2025-10-03">gpt-5-chat-2025-10-03</option>
+                    <option value="gpt-5-reasoning">gpt-5-reasoning</option>
+                    <option value="gpt-5-mini">gpt-5-mini</option>
+                    <option value="gpt-5-chat-mini">gpt-5-chat-mini</option>
+                    <option value="gpt-51-chat">gpt-5.1 chat</option>
+                    <option value="gpt-51-reasoning">gpt-5.1 reasoning</option>
+                    <option value="gpt-52-chat">gpt-5.2 chat</option>
+                    <option value="gpt-52-reasoning">gpt-5.2 reasoning</option>
+                    <option value="o3-2025-04-16">o3</option>
+                    <option value="gpt-o3-mini">o3-mini</option>
                     <option value="o4-mini">o4-mini</option>
                 </select>
             </div>
@@ -524,7 +526,7 @@
                 <thead>
                     <tr>
                         <th>Model</th>
-                        <th>Kusto Model Name</th>
+                        
                         <th>Output Multiplier</th>
                         <th>TPM/GPU Standard</th>
                         <th>TPM/GPU Premium</th>
@@ -559,7 +561,7 @@
     </details>
 
     <div class="footer">
-        GPU Calculator Comparison v4.0 — Benchmarks from Kusto <code>GetModelOperatingPoints()</code> — GPU Team &amp; LLM API Capacity Planning — March 2026
+        GPU Calculator Comparison v4.1 — Benchmarks from Kusto <code>GetModelOperatingPoints()</code> — GPU Team &amp; LLM API Capacity Planning — March 2026
     </div>
 </div>
 
@@ -578,24 +580,27 @@
 // cost calculator at substrate.microsoft.net/v2/llmApi/costCalculator.
 // Values represent PerA100eGPUOperatingPoint per CostEndpointType.
 // ══════════════════════════════════════════════════════════════
+// Keys match Kusto ModelName from GetModelOperatingPoints() exactly.
 const MODEL_CONFIG = {
-    'GPT-4o':             { mult: 4, kustoName: 'gpt-4o-11-20',              tpm: { standard: 88625,   premium: 42625,   async: 100875  }, costPerDay: 36.50 },
-    'GPT-4o mini':        { mult: 4, kustoName: 'gpt-4o-mini-2024-07-18',   tpm: { standard: 2450000, premium: 1600000, async: 3000000 }, costPerDay: 36.50 },
-    '4o Image Gen':       { mult: 1, kustoName: '4o Image Gen',             tpm: { standard: 15761,   premium: 15761,   async: 24920   }, costPerDay: 36.50 },
-    'GPT-4.1':            { mult: 4, kustoName: 'gpt-41-shortco-2025-04-14',tpm: { standard: 98750,   premium: 45000,   async: 123714  }, costPerDay: 36.50 },
-    'GPT-4.1 longco':     { mult: 4, kustoName: 'gpt-41-longco-2025-04-14', tpm: { standard: 17972,   premium: 3456,    async: 46082   }, costPerDay: 36.50 },
-    'GPT-4.1 mini':       { mult: 4, kustoName: 'gpt-41-mini-04-14',        tpm: { standard: 666666,  premium: 48000,   async: 786666  }, costPerDay: 36.50 },
-    'GPT-4.1 nano':       { mult: 4, kustoName: 'gpt-41-nano-04-14',        tpm: { standard: 785000,  premium: 375000,  async: 1370000 }, costPerDay: 36.50 },
-    'GPT-5.1 chat':       { mult: 8, kustoName: 'gpt-51-chat',              tpm: { standard: 48000,   premium: 84174,   async: 80000   }, costPerDay: 36.50 },
-    'GPT-5.1 reasoning':  { mult: 8, kustoName: 'gpt-51-reasoning',         tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
-    'GPT-5.2 chat':       { mult: 8, kustoName: 'gpt-52-chat',              tpm: { standard: 36830,   premium: 11140,   async: 43506   }, costPerDay: 36.50 },
-    'GPT-5.2 reasoning':  { mult: 8, kustoName: 'gpt-52-reasoning',         tpm: { standard: 36830,   premium: 11140,   async: 36830   }, costPerDay: 36.50 },
-    'GPT-5 chat':         { mult: 8, kustoName: 'gpt-5-chat-2025-10-03',    tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
-    'GPT-5 reasoning':    { mult: 8, kustoName: 'gpt-5-reasoning',          tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
-    'GPT-5 mini':         { mult: 8, kustoName: 'gpt-5-mini',               tpm: { standard: 287500,  premium: 69600,   async: 685800  }, costPerDay: 36.50 },
-    'o3':                 { mult: 8, kustoName: 'o3-2025-04-16',            tpm: { standard: 65000,   premium: 30000,   async: 80000   }, costPerDay: 36.50 },
-    'o3-mini':            { mult: 4, kustoName: 'gpt-o3-mini',              tpm: { standard: 281250,  premium: 281250,  async: 331250  }, costPerDay: 36.50 },
-    'o4-mini':            { mult: 4, kustoName: 'o4-mini',                  tpm: { standard: 34880,   premium: 18666,   async: 60266   }, costPerDay: 36.50 }
+    'gpt-4o-11-20':              { mult: 4, tpm: { standard: 88625,   premium: 42625,   async: 100875  }, costPerDay: 36.50 },
+    'gpt-4o-mini-2024-07-18':   { mult: 4, tpm: { standard: 2450000, premium: 1600000, async: 3000000 }, costPerDay: 36.50 },
+    '4o Image Gen':              { mult: 1, tpm: { standard: 15761,   premium: 15761,   async: 24920   }, costPerDay: 36.50 },
+    'gpt-41-shortco-2025-04-14':{ mult: 4, tpm: { standard: 98750,   premium: 45000,   async: 123714  }, costPerDay: 36.50 },
+    'gpt-41-longco-2025-04-14': { mult: 4, tpm: { standard: 17972,   premium: 3456,    async: 46082   }, costPerDay: 36.50 },
+    'gpt-41-mini-04-14':        { mult: 4, tpm: { standard: 666666,  premium: 48000,   async: 786666  }, costPerDay: 36.50 },
+    'gpt-41-nano-04-14':        { mult: 4, tpm: { standard: 785000,  premium: 375000,  async: 1370000 }, costPerDay: 36.50 },
+    'gpt-5-chat-jj':            { mult: 8, tpm: { standard: 75000,   premium: 33600,   async: 94300   }, costPerDay: 36.50 },
+    'gpt-5-chat-2025-10-03':    { mult: 8, tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
+    'gpt-5-reasoning':          { mult: 8, tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
+    'gpt-5-mini':               { mult: 8, tpm: { standard: 287500,  premium: 69600,   async: 685800  }, costPerDay: 36.50 },
+    'gpt-5-chat-mini':          { mult: 8, tpm: { standard: 287500,  premium: 69583,   async: 685833  }, costPerDay: 36.50 },
+    'gpt-51-chat':              { mult: 8, tpm: { standard: 48000,   premium: 84174,   async: 80000   }, costPerDay: 36.50 },
+    'gpt-51-reasoning':         { mult: 8, tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
+    'gpt-52-chat':              { mult: 8, tpm: { standard: 36830,   premium: 11140,   async: 43506   }, costPerDay: 36.50 },
+    'gpt-52-reasoning':         { mult: 8, tpm: { standard: 36830,   premium: 11140,   async: 36830   }, costPerDay: 36.50 },
+    'o3-2025-04-16':            { mult: 8, tpm: { standard: 65000,   premium: 30000,   async: 80000   }, costPerDay: 36.50 },
+    'gpt-o3-mini':              { mult: 4, tpm: { standard: 281250,  premium: 281250,  async: 331250  }, costPerDay: 36.50 },
+    'o4-mini':                  { mult: 4, tpm: { standard: 34880,   premium: 18666,   async: 60266   }, costPerDay: 36.50 }
 };
 
 let wlCounter = 0;
@@ -607,7 +612,7 @@ function getCfg() {
         mult: model.mult,
         tpmPerGPU: model.tpm[tier],
         costPerDay: model.costPerDay,
-        kustoName: model.kustoName,
+        kustoName: document.getElementById('modelSelect').value,
         tier: tier
     };
 }
@@ -678,8 +683,8 @@ function calculate() {
     const weightedRows = [];
 
     wls.forEach(wl => {
-        const cGPU = Math.ceil(wl.currentTPM / tpmGPU);
-        const wGPU = Math.ceil(wl.weightedTPM / tpmGPU);
+        const cGPU = wl.currentTPM / tpmGPU;
+        const wGPU = wl.weightedTPM / tpmGPU;
         totalCurrentGPU += cGPU;
         totalWeightedGPU += wGPU;
         currentRows.push({ name: wl.name, tpm: wl.currentTPM, gpu: cGPU });
@@ -690,8 +695,8 @@ function calculate() {
     document.getElementById('comparisonGrid').style.display = '';
 
     // Hero numbers
-    document.getElementById('currentGPU').textContent = totalCurrentGPU.toLocaleString();
-    document.getElementById('weightedGPU').textContent = totalWeightedGPU.toLocaleString();
+    document.getElementById('currentGPU').textContent = totalCurrentGPU.toFixed(2);
+    document.getElementById('weightedGPU').textContent = totalWeightedGPU.toFixed(2);
 
     // Tags
     document.getElementById('weightTag').textContent = `Output ×${c.mult}`;
@@ -706,9 +711,9 @@ function calculate() {
     const pct = totalCurrentGPU > 0 ? ((delta / totalCurrentGPU) * 100).toFixed(0) : 0;
     const banner = document.getElementById('deltaBanner');
     banner.classList.add('visible');
-    document.getElementById('deltaText').textContent = `+${delta.toLocaleString()} GPUs (${pct}% more)`;
+    document.getElementById('deltaText').textContent = `+${delta.toFixed(2)} GPUs (${pct}% more)`;
     document.getElementById('deltaDetail').textContent =
-        `Current: ${totalCurrentGPU.toLocaleString()} GPUs → Weighted: ${totalWeightedGPU.toLocaleString()} GPUs | Using ${c.mult}× output weight for ${model}`;
+        `Current: ${totalCurrentGPU.toFixed(2)} GPUs → Weighted: ${totalWeightedGPU.toFixed(2)} GPUs | Using ${c.mult}× output weight for ${model}`;
 
     // Math walkthrough
     generateMath(model, c, wls, currentRows, weightedRows, totalCurrentGPU, totalWeightedGPU);
@@ -722,7 +727,7 @@ function fillBreakdown(tbodyId, rows, total, numClass) {
         tr.innerHTML = `
             <td>${r.name}</td>
             <td>${r.tpm.toLocaleString()}</td>
-            <td style="text-align:right;"><span class="gpu-val ${numClass}">${r.gpu.toLocaleString()}</span></td>
+            <td style="text-align:right;"><span class="gpu-val ${numClass}">${r.gpu.toFixed(2)}</span></td>
         `;
         tbody.appendChild(tr);
     });
@@ -732,7 +737,7 @@ function fillBreakdown(tbodyId, rows, total, numClass) {
     tr.innerHTML = `
         <td>Total</td>
         <td>${totalTPM.toLocaleString()}</td>
-        <td style="text-align:right;"><span class="gpu-val ${numClass}">${total.toLocaleString()}</span></td>
+        <td style="text-align:right;"><span class="gpu-val ${numClass}">${total.toFixed(2)}</span></td>
     `;
     tbody.appendChild(tr);
 }
@@ -763,7 +768,7 @@ function generateMath(model, c, wls, currentRows, weightedRows, totalCurrent, to
         html += `<div class="math-code">`;
         html += `Effective TPM = RPM × (Input + Output)<br>`;
         html += `&nbsp; = ${wl.rpm.toLocaleString()} × (${wl.inp.toLocaleString()} + ${wl.out.toLocaleString()}) = <span class="hl-g">${wl.currentTPM.toLocaleString()}</span><br>`;
-        html += `GPUs = ⌈ ${wl.currentTPM.toLocaleString()} ÷ ${tpmGPU.toLocaleString()} ⌉ = ⌈ ${(wl.currentTPM / tpmGPU).toFixed(2)} ⌉ = <span class="hl-g">${cR.gpu}</span>`;
+        html += `GPUs = ${wl.currentTPM.toLocaleString()} ÷ ${tpmGPU.toLocaleString()} = <span class="hl-g">${cR.gpu.toFixed(2)}</span>`;
         html += `</div></div>`;
 
         // Weighted
@@ -773,7 +778,7 @@ function generateMath(model, c, wls, currentRows, weightedRows, totalCurrent, to
         html += `Effective TPM = RPM × (Input + <span class="hl-p">${mult}</span> × Output)<br>`;
         html += `&nbsp; = ${wl.rpm.toLocaleString()} × (${wl.inp.toLocaleString()} + <span class="hl-p">${mult}</span> × ${wl.out.toLocaleString()})<br>`;
         html += `&nbsp; = ${wl.rpm.toLocaleString()} × ${(wl.inp + mult * wl.out).toLocaleString()} = <span class="hl-b">${wl.weightedTPM.toLocaleString()}</span><br>`;
-        html += `GPUs = ⌈ ${wl.weightedTPM.toLocaleString()} ÷ ${tpmGPU.toLocaleString()} ⌉ = ⌈ ${(wl.weightedTPM / tpmGPU).toFixed(2)} ⌉ = <span class="hl-b">${wR.gpu}</span>`;
+        html += `GPUs = ${wl.weightedTPM.toLocaleString()} ÷ ${tpmGPU.toLocaleString()} = <span class="hl-b">${wR.gpu.toFixed(2)}</span>`;
         html += `</div></div>`;
 
         // Delta
@@ -781,7 +786,7 @@ function generateMath(model, c, wls, currentRows, weightedRows, totalCurrent, to
         html += `<div class="math-step step-delta">`;
         html += `<div class="math-step-title t-delta">Delta</div>`;
         html += `<div class="math-code">`;
-        html += `GPU difference = ${wR.gpu} − ${cR.gpu} = <span class="hl-r">+${d}</span> GPUs`;
+        html += `GPU difference = ${wR.gpu.toFixed(2)} − ${cR.gpu.toFixed(2)} = <span class="hl-r">+${d.toFixed(2)}</span> GPUs`;
         html += `</div></div>`;
     });
 
@@ -792,8 +797,8 @@ function generateMath(model, c, wls, currentRows, weightedRows, totalCurrent, to
     html += `<div class="math-step step-delta">`;
     html += `<div class="math-step-title t-delta">Grand Total</div>`;
     html += `<div class="math-code">`;
-    html += `Current: <span class="hl-g">${totalCurrent}</span> GPUs → Weighted: <span class="hl-b">${totalWeighted}</span> GPUs<br>`;
-    html += `Difference: <span class="hl-r">+${delta} GPUs (+${pct}%)</span><br>`;
+    html += `Current: <span class="hl-g">${totalCurrent.toFixed(2)}</span> GPUs → Weighted: <span class="hl-b">${totalWeighted.toFixed(2)}</span> GPUs<br>`;
+    html += `Difference: <span class="hl-r">+${delta.toFixed(2)} GPUs (+${pct}%)</span><br>`;
     html += `The weighted method shows the current calculator underestimates GPU needs by ~${(totalWeighted / totalCurrent).toFixed(2)}×.`;
     html += `</div></div>`;
 
@@ -811,8 +816,8 @@ function renderAssumptions() {
         const premBold = tier === 'premium' ? 'font-weight:700;' : '';
         const asyncBold = tier === 'async' ? 'font-weight:700;' : '';
         tr.innerHTML = `
-            <td><strong>${name}</strong></td>
-            <td style="font-family:monospace;font-size:12px;color:#605e5c;">${c.kustoName}</td>
+            <td style="font-family:monospace;"><strong>${name}</strong></td>
+            
             <td style="color:#0078d4;font-weight:600;">${c.mult}×</td>
             <td style="${stdBold}">${c.tpm.standard.toLocaleString()}</td>
             <td style="${premBold}">${c.tpm.premium.toLocaleString()}</td>
