@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGU Calculator - Weighted Token Comparison</title>
+    <title>GPU Calculator Comparison</title>
     <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #f5f5f5;
+            background: #f5f5f5;
             color: #323130;
             font-size: 14px;
         }
 
-        /* ── Microsoft-style header ── */
+        /* ── Header ── */
         .ms-header {
             background: #fff;
             border-bottom: 1px solid #edebe9;
@@ -36,78 +36,79 @@
         .ms-nav a { color: #605e5c; text-decoration: none; font-size: 14px; }
         .ms-nav a:hover { color: #0078d4; }
 
-        /* ── Sub header ── */
         .sub-header {
             background: #fff;
             padding: 16px 24px;
             border-bottom: 1px solid #edebe9;
         }
-        .sub-header h1 { font-size: 20px; font-weight: 600; color: #323130; }
+        .sub-header h1 { font-size: 20px; font-weight: 600; }
 
-        /* ── Main container ── */
-        .main-container { padding: 24px; max-width: 1600px; margin: 0 auto; }
+        /* ── Main ── */
+        .main { padding: 24px; max-width: 1400px; margin: 0 auto; }
 
-        /* ── Info banners ── */
-        .info-banner {
-            background: #deecf9;
-            border-left: 4px solid #0078d4;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            font-size: 13px;
-            color: #323130;
-            border-radius: 4px;
+        /* ── Inputs section ── */
+        .inputs-card {
+            background: #fff;
+            border: 1px solid #edebe9;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 24px;
         }
-        .info-icon {
-            width: 20px; height: 20px;
-            background: #0078d4;
-            border-radius: 50%;
-            color: #fff;
+        .inputs-card h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-            flex-shrink: 0;
-            margin-top: 1px;
+            gap: 8px;
         }
-        .warn-banner {
-            background: #fff4ce;
-            border-left: 4px solid #ffb900;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            border-radius: 4px;
-        }
-
-        /* ── Controls row ── */
-        .controls-row {
+        .inputs-row {
             display: flex;
             gap: 16px;
-            margin-bottom: 20px;
             align-items: flex-end;
             flex-wrap: wrap;
+            margin-bottom: 16px;
         }
-        .control-group { display: flex; flex-direction: column; gap: 4px; }
-        .control-group label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #323130;
-        }
-        .control-group select,
-        .control-group input {
-            padding: 6px 12px;
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field label { font-size: 12px; font-weight: 600; color: #605e5c; }
+        .field select, .field input {
+            padding: 7px 12px;
             border: 1px solid #8a8886;
             border-radius: 4px;
             font-size: 14px;
             background: #fff;
-            min-width: 170px;
+            min-width: 140px;
+        }
+        .field input:focus, .field select:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 0 1px #0078d4;
         }
 
-        /* ── Buttons ── */
-        .btn-group { display: flex; gap: 8px; margin-bottom: 20px; }
+        .workload-table { width: 100%; border-collapse: collapse; }
+        .workload-table th {
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #605e5c;
+            padding: 8px 10px;
+            border-bottom: 1px solid #edebe9;
+        }
+        .workload-table td { padding: 6px 10px; }
+        .workload-table td input {
+            padding: 6px 8px;
+            border: 1px solid #c8c6c4;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            min-width: 70px;
+        }
+        .workload-table td input:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 0 1px #0078d4;
+        }
+        .btn-row { display: flex; gap: 8px; margin-top: 12px; }
         .btn {
             display: inline-flex;
             align-items: center;
@@ -121,175 +122,227 @@
         }
         .btn-primary { background: #0078d4; color: #fff; }
         .btn-primary:hover { background: #106ebe; }
-        .btn-secondary { background: #fff; color: #323130; border-color: #8a8886; }
-        .btn-secondary:hover { background: #f3f2f1; }
-        .btn-add { background: #fff; color: #0078d4; border-color: #0078d4; }
-        .btn-add:hover { background: #deecf9; }
-        .btn-danger { background: none; color: #d13438; border: none; cursor: pointer; font-size: 18px; padding: 4px 8px; }
-        .btn-danger:hover { background: #fde7e9; border-radius: 4px; }
+        .btn-ghost { background: none; color: #0078d4; border-color: #0078d4; }
+        .btn-ghost:hover { background: #deecf9; }
+        .btn-text { background: none; color: #605e5c; border: none; font-size: 13px; cursor: pointer; }
+        .btn-text:hover { color: #d13438; }
+        .btn-remove { background: none; border: none; color: #a19f9d; cursor: pointer; font-size: 18px; padding: 4px 8px; }
+        .btn-remove:hover { color: #d13438; }
 
-        /* ── Tables ── */
-        .table-container {
-            background: #fff;
-            border: 1px solid #edebe9;
-            border-radius: 4px;
-            overflow-x: auto;
-            margin-bottom: 20px;
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th {
-            background: #faf9f8;
-            padding: 10px 12px;
-            text-align: left;
-            font-size: 13px;
-            font-weight: 600;
-            color: #605e5c;
-            border-bottom: 1px solid #edebe9;
-            white-space: nowrap;
-        }
-        td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #f3f2f1;
-            font-size: 14px;
-            vertical-align: middle;
-        }
-        td input {
-            padding: 6px 8px;
-            border: 1px solid #c8c6c4;
-            border-radius: 4px;
-            font-size: 14px;
-            width: 100%;
-            min-width: 80px;
-        }
-        td input:focus { outline: none; border-color: #0078d4; box-shadow: 0 0 0 1px #0078d4; }
-        td input.computed {
-            background: #f3f2f1;
-            color: #605e5c;
-            border-color: #e1dfdd;
-        }
-        .totals-row td { font-weight: 600; background: #faf9f8; border-top: 2px solid #edebe9; }
-
-        /* ── Results section ── */
-        .results-grid {
+        /* ── Comparison grid ── */
+        .comparison {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 24px;
+            margin-bottom: 24px;
         }
-        @media (max-width: 1200px) {
-            .results-grid { grid-template-columns: 1fr; }
-        }
-        .result-panel {
+        @media (max-width: 900px) { .comparison { grid-template-columns: 1fr; } }
+
+        .calc-card {
             background: #fff;
             border: 1px solid #edebe9;
-            border-radius: 4px;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .calc-card.current { border-top: 4px solid #8a8886; }
+        .calc-card.weighted { border-top: 4px solid #0078d4; }
+
+        .calc-header {
+            padding: 16px 20px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .calc-header h3 { font-size: 16px; font-weight: 600; }
+        .tag {
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tag-current { background: #f3f2f1; color: #605e5c; }
+        .tag-weighted { background: #deecf9; color: #0078d4; }
+
+        .calc-subtitle {
+            padding: 0 20px 16px;
+            font-size: 12px;
+            color: #605e5c;
+            line-height: 1.5;
+        }
+
+        /* Hero GPU number */
+        .gpu-hero {
+            padding: 24px 20px;
+            text-align: center;
+            background: #faf9f8;
+            border-top: 1px solid #edebe9;
+            border-bottom: 1px solid #edebe9;
+        }
+        .gpu-hero .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #605e5c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .gpu-hero .number {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        .gpu-hero .number.current-num { color: #323130; }
+        .gpu-hero .number.weighted-num { color: #0078d4; }
+        .gpu-hero .unit {
+            font-size: 14px;
+            font-weight: 500;
+            color: #605e5c;
+            margin-top: 2px;
+        }
+
+        /* Per-workload breakdown inside card */
+        .breakdown {
+            padding: 16px 20px;
+            flex: 1;
+        }
+        .breakdown table { width: 100%; border-collapse: collapse; }
+        .breakdown th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #a19f9d;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 6px 8px;
+            border-bottom: 1px solid #edebe9;
+        }
+        .breakdown td {
+            font-size: 13px;
+            padding: 8px;
+            border-bottom: 1px solid #f3f2f1;
+        }
+        .breakdown .totals td {
+            font-weight: 600;
+            border-top: 2px solid #edebe9;
+            border-bottom: none;
+        }
+        .gpu-val { font-weight: 700; font-size: 15px; }
+        .gpu-val.current-num { color: #323130; }
+        .gpu-val.weighted-num { color: #0078d4; }
+
+        /* Delta banner */
+        .delta-banner {
+            display: none;
+            background: #fff;
+            border: 2px solid #d13438;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .delta-banner.visible { display: block; }
+        .delta-banner .delta-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #605e5c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .delta-banner .delta-nums {
+            font-size: 20px;
+            font-weight: 700;
+            color: #d13438;
+            margin-top: 4px;
+        }
+        .delta-banner .delta-detail {
+            font-size: 13px;
+            color: #605e5c;
+            margin-top: 6px;
+        }
+
+        /* ── Expandable sections ── */
+        details {
+            background: #fff;
+            border: 1px solid #edebe9;
+            border-radius: 6px;
+            margin-bottom: 16px;
             overflow: hidden;
         }
-        .result-panel.old-method { border-top: 3px solid #8a8886; }
-        .result-panel.new-method { border-top: 3px solid #0078d4; }
-        .panel-header {
-            padding: 12px 16px;
-            font-size: 15px;
+        details summary {
+            padding: 12px 20px;
+            font-size: 14px;
             font-weight: 600;
+            color: #0078d4;
+            cursor: pointer;
+            list-style: none;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .panel-header .badge {
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .badge-old { background: #f3f2f1; color: #605e5c; }
-        .badge-new { background: #deecf9; color: #0078d4; }
-        .result-panel table th { font-size: 12px; }
-        .result-panel table td { font-size: 13px; }
-
-        /* ── Impact cards ── */
-        .impact-section { margin-bottom: 24px; }
-        .impact-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #323130; }
-        .impact-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
-        .impact-card {
-            background: #fff;
-            border: 1px solid #edebe9;
-            border-radius: 4px;
-            padding: 16px;
-        }
-        .impact-card .label { font-size: 12px; color: #605e5c; margin-bottom: 4px; }
-        .impact-card .value { font-size: 24px; font-weight: 600; color: #323130; }
-        .impact-card .delta { font-size: 13px; margin-top: 4px; }
-        .delta-up { color: #d13438; }
-        .delta-neutral { color: #605e5c; }
-
-        /* ── Collapsible settings ── */
-        .settings-toggle {
-            background: none;
-            border: none;
-            color: #0078d4;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 0;
-            font-weight: 500;
-        }
-        .settings-toggle:hover { text-decoration: underline; }
-        .settings-panel {
-            display: none;
-            background: #fff;
-            border: 1px solid #edebe9;
-            border-radius: 4px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-        .settings-panel.open { display: block; }
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 16px;
-        }
-        .setting-card {
-            background: #faf9f8;
-            border: 1px solid #edebe9;
-            border-radius: 4px;
-            padding: 12px;
-        }
-        .setting-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-        .setting-row label { font-size: 12px; color: #605e5c; }
-        .setting-row input {
-            width: 80px;
-            padding: 3px 6px;
-            border: 1px solid #c8c6c4;
-            border-radius: 3px;
+        details summary::-webkit-details-marker { display: none; }
+        details summary::before {
+            content: '▸';
             font-size: 12px;
-            text-align: right;
+            transition: transform 0.2s;
         }
+        details[open] summary::before { transform: rotate(90deg); }
+        details summary:hover { background: #faf9f8; }
+        .detail-body { padding: 16px 20px; border-top: 1px solid #edebe9; }
 
-        /* ── Pricing reference ── */
-        .ref-section {
-            background: #fff;
-            border: 1px solid #edebe9;
-            border-radius: 4px;
-            padding: 16px;
-            margin-top: 20px;
+        /* Math walkthrough */
+        .math-step {
+            margin-bottom: 12px;
+            padding-left: 14px;
+            border-left: 3px solid #edebe9;
         }
-        .ref-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
-        .ref-table { width: auto; }
-        .ref-table th { font-size: 12px; padding: 6px 12px; }
-        .ref-table td { font-size: 12px; padding: 6px 12px; }
-        .ref-table td.ratio { font-weight: 600; color: #0078d4; }
+        .math-step.step-input { border-left-color: #ffb900; }
+        .math-step.step-current { border-left-color: #8a8886; }
+        .math-step.step-weighted { border-left-color: #0078d4; }
+        .math-step.step-delta { border-left-color: #d13438; }
+        .math-step-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .math-step-title.t-input { color: #986f0b; }
+        .math-step-title.t-current { color: #8a8886; }
+        .math-step-title.t-weighted { color: #0078d4; }
+        .math-step-title.t-delta { color: #d13438; }
+        .math-code {
+            font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            background: #faf9f8;
+            padding: 8px 12px;
+            border-radius: 4px;
+            line-height: 1.7;
+            margin-top: 4px;
+            overflow-x: auto;
+        }
+        .hl-b { color: #0078d4; font-weight: 600; }
+        .hl-g { color: #605e5c; }
+        .hl-r { color: #d13438; font-weight: 600; }
+        .hl-p { color: #8764b8; font-weight: 600; }
+
+        /* Assumptions table */
+        .assumptions-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .assumptions-table th {
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #605e5c;
+            padding: 6px 10px;
+            background: #faf9f8;
+            border-bottom: 1px solid #edebe9;
+        }
+        .assumptions-table td {
+            font-size: 13px;
+            padding: 6px 10px;
+            border-bottom: 1px solid #f3f2f1;
+        }
 
         /* ── Footer ── */
         .footer {
@@ -298,177 +351,11 @@
             color: #a19f9d;
             font-size: 12px;
         }
-
-        /* ── Column group headers ── */
-        th.group-header {
-            text-align: center;
-            background: #f3f2f1;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 6px 12px;
-        }
-        th.group-old { border-bottom: 2px solid #8a8886; }
-        th.group-new { border-bottom: 2px solid #0078d4; }
-        .val-old { color: #605e5c; }
-        .val-new { color: #0078d4; font-weight: 600; }
-        .val-delta { color: #d13438; font-size: 12px; }
-
-        /* Tooltip */
-        .tooltip {
-            position: relative;
-            cursor: help;
-        }
-        .tooltip::after {
-            content: attr(data-tip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #323130;
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            white-space: nowrap;
-            display: none;
-            z-index: 10;
-        }
-        .tooltip:hover::after { display: block; }
-
-        /* Highlight diff cells */
-        .cell-increase { background: #fde7e9; }
-
-        /* ── Show Math walkthrough ── */
-        .math-section {
-            display: none;
-            margin-bottom: 24px;
-        }
-        .math-section.visible { display: block; }
-        .math-panel {
-            background: #fff;
-            border: 1px solid #edebe9;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .math-panel-header {
-            background: #f3f2f1;
-            padding: 12px 16px;
-            font-size: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-bottom: 1px solid #edebe9;
-        }
-        .math-panel-header .badge-math {
-            background: #e8d4f0;
-            color: #8764b8;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .math-workload {
-            border-bottom: 1px solid #edebe9;
-            padding: 16px;
-        }
-        .math-workload:last-child { border-bottom: none; }
-        .math-workload h4 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #323130;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .math-workload h4 .wl-badge {
-            background: #deecf9;
-            color: #0078d4;
-            padding: 1px 6px;
-            border-radius: 8px;
-            font-size: 11px;
-        }
-        .math-step {
-            margin-bottom: 10px;
-            padding-left: 16px;
-            border-left: 3px solid #edebe9;
-        }
-        .math-step.step-assumption { border-left-color: #ffb900; }
-        .math-step.step-old { border-left-color: #8a8886; }
-        .math-step.step-new { border-left-color: #0078d4; }
-        .math-step.step-compare { border-left-color: #d13438; }
-        .math-step-label {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
-        }
-        .math-step-label.label-assumption { color: #ffb900; }
-        .math-step-label.label-old { color: #8a8886; }
-        .math-step-label.label-new { color: #0078d4; }
-        .math-step-label.label-compare { color: #d13438; }
-        .math-formula {
-            font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
-            font-size: 13px;
-            color: #323130;
-            line-height: 1.6;
-            background: #faf9f8;
-            padding: 8px 12px;
-            border-radius: 4px;
-            margin-top: 4px;
-            overflow-x: auto;
-        }
-        .math-formula .hl-val { color: #0078d4; font-weight: 600; }
-        .math-formula .hl-old { color: #605e5c; }
-        .math-formula .hl-new { color: #0078d4; font-weight: 600; }
-        .math-formula .hl-delta { color: #d13438; font-weight: 600; }
-        .math-formula .hl-mult { color: #8764b8; font-weight: 600; }
-        .math-note {
-            font-size: 12px;
-            color: #605e5c;
-            font-style: italic;
-            margin-top: 2px;
-        }
-        .math-summary {
-            background: #f3f2f1;
-            padding: 16px;
-            border-top: 2px solid #edebe9;
-        }
-        .math-summary h4 {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .math-summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 8px;
-        }
-        .math-summary-item {
-            background: #fff;
-            padding: 8px 12px;
-            border-radius: 4px;
-            border: 1px solid #edebe9;
-            font-size: 13px;
-        }
-        .btn-math {
-            background: #fff;
-            color: #8764b8;
-            border-color: #8764b8;
-        }
-        .btn-math:hover { background: #f3e8fc; }
-        .btn-math.active {
-            background: #8764b8;
-            color: #fff;
-        }
     </style>
 </head>
 <body>
 
-<!-- ══════════ HEADER ══════════ -->
+<!-- ═══ HEADER ═══ -->
 <div class="ms-header">
     <div class="ms-logo">
         <svg viewBox="0 0 24 24"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="13" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="13" width="10" height="10" fill="#00a4ef"/><rect x="13" y="13" width="10" height="10" fill="#ffb900"/></svg>
@@ -476,893 +363,437 @@
     </div>
     <nav class="ms-nav">
         <a href="capacity-eta-dashboard.html">Capacity Dashboard</a>
-        <a href="pgu-calculator.html" style="color:#0078d4;font-weight:600;">PGU Calculator</a>
+        <a href="gpu-calculator.html" style="color:#0078d4;font-weight:600;">GPU Calculator</a>
         <a href="https://substrate.microsoft.net/v2/llmApi/costCalculator" target="_blank">Original Calculator ↗</a>
     </nav>
 </div>
 
 <div class="sub-header">
-    <h1>PGU Calculator — Weighted Token Comparison</h1>
+    <h1>GPU Calculator Comparison</h1>
 </div>
 
-<!-- ══════════ MAIN ══════════ -->
-<div class="main-container">
+<!-- ═══ MAIN ═══ -->
+<div class="main">
 
-    <!-- Info banner -->
-    <div class="info-banner">
-        <div class="info-icon">i</div>
-        <div>
-            <strong>Why this calculator?</strong> The current calculator treats input and output tokens equally (1:1 weight).
-            In reality, output tokens are significantly more expensive to generate. This tool applies <strong>output token multipliers</strong>
-            derived from <a href="https://openai.com/api/pricing/" target="_blank">OpenAI public pricing</a> to show the corrected GPU and cost estimates
-            side-by-side with the old method. Multipliers: <strong>8× for GPT-5.x/reasoning</strong>, <strong>4× for GPT-4.x/4o</strong>.
+    <!-- ── Shared Inputs ── -->
+    <div class="inputs-card">
+        <h2>
+            <svg width="18" height="18" fill="none" stroke="#0078d4" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+            Inputs <span style="font-size:12px;font-weight:400;color:#605e5c;margin-left:8px;">Same inputs feed both calculators</span>
+        </h2>
+        <div class="inputs-row">
+            <div class="field">
+                <label for="modelSelect">Model</label>
+                <select id="modelSelect" onchange="onModelChange()">
+                    <option value="GPT-4o">GPT-4o</option>
+                    <option value="GPT-4o mini">GPT-4o mini</option>
+                    <option value="4o Image Gen">4o Image Gen</option>
+                    <option value="GPT-4.1">GPT-4.1</option>
+                    <option value="GPT-4.1 mini">GPT-4.1 mini</option>
+                    <option value="GPT-4.1 nano">GPT-4.1 nano</option>
+                    <option value="GPT-5.1" selected>GPT-5.1</option>
+                    <option value="GPT-5.2">GPT-5.2</option>
+                    <option value="GPT-5 mini">GPT-5 mini</option>
+                    <option value="o1">o1</option>
+                    <option value="o3">o3</option>
+                    <option value="o3-mini">o3-mini</option>
+                    <option value="o4-mini">o4-mini</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Output Weight (New calc)</label>
+                <input type="text" id="outMultDisplay" readonly style="background:#f3f2f1;color:#0078d4;font-weight:600;max-width:80px;">
+            </div>
+            <div class="field">
+                <label>TPM/GPU (A100)</label>
+                <input type="text" id="tpmGpuDisplay" readonly style="background:#f3f2f1;max-width:110px;">
+            </div>
         </div>
-    </div>
 
-    <!-- Controls -->
-    <div class="controls-row">
-        <div class="control-group">
-            <label for="modelSelect">Model</label>
-            <select id="modelSelect" onchange="onModelChange()">
-                <option value="GPT-4o">GPT-4o</option>
-                <option value="GPT-4o mini">GPT-4o mini</option>
-                <option value="4o Image Gen">4o Image Gen</option>
-                <option value="GPT-4.1">GPT-4.1</option>
-                <option value="GPT-4.1 mini">GPT-4.1 mini</option>
-                <option value="GPT-4.1 nano">GPT-4.1 nano</option>
-                <option value="GPT-5.1">GPT-5.1</option>
-                <option value="GPT-5.2">GPT-5.2</option>
-                <option value="GPT-5 mini">GPT-5 mini</option>
-                <option value="o1">o1</option>
-                <option value="o3">o3</option>
-                <option value="o3-mini">o3-mini</option>
-                <option value="o4-mini">o4-mini</option>
-            </select>
-        </div>
-        <div class="control-group">
-            <label for="timePeriod">Time Period</label>
-            <select id="timePeriod">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-            </select>
-        </div>
-        <div class="control-group">
-            <label>Output Multiplier (selected model)</label>
-            <input type="text" id="currentMultiplier" readonly class="computed" style="min-width:80px;max-width:100px;">
-        </div>
-    </div>
-
-    <!-- Action buttons -->
-    <div class="btn-group">
-        <button class="btn btn-primary" onclick="calculate()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
-            Calculate &amp; Compare
-        </button>
-        <button class="btn btn-secondary" onclick="clearAll()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Clear All
-        </button>
-        <button class="btn btn-math" id="btnShowMath" onclick="toggleMath()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><line x1="17" y1="14" x2="17" y2="20"/><line x1="14" y1="17" x2="20" y2="17"/></svg>
-            Show Math
-        </button>
-    </div>
-
-    <!-- ═══ Workload input table ═══ -->
-    <div class="table-container">
-        <table id="workloadTable">
+        <!-- Workload rows -->
+        <table class="workload-table">
             <thead>
                 <tr>
-                    <th>Workload Name</th>
+                    <th>Workload</th>
                     <th>Peak RPM</th>
-                    <th class="tooltip" data-tip="Avg input tokens per request">Input Tokens/Req</th>
-                    <th class="tooltip" data-tip="Avg output tokens per request">Output Tokens/Req</th>
-                    <th class="tooltip" data-tip="RPM × Input Tokens/Req (auto-calculated)">TPM (Input)</th>
-                    <th class="tooltip" data-tip="RPM × (Input + Output) — unweighted">Total TPM (Old)</th>
-                    <th class="tooltip" data-tip="RPM × (Input + Mult × Output) — weighted">Effective TPM (New)</th>
+                    <th>Avg Input Tokens/Req</th>
+                    <th>Avg Output Tokens/Req</th>
                     <th></th>
                 </tr>
             </thead>
-            <tbody id="workloadBody">
-                <!-- Rows inserted by JS -->
-            </tbody>
-            <tfoot>
-                <tr class="totals-row" id="totalsRow">
-                    <td><strong>Totals:</strong></td>
-                    <td id="totalRPM">-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td id="totalTPM">-</td>
-                    <td id="totalOldTPM">-</td>
-                    <td id="totalNewTPM">-</td>
-                    <td></td>
-                </tr>
-            </tfoot>
+            <tbody id="workloadBody"></tbody>
         </table>
+        <div class="btn-row">
+            <button class="btn btn-ghost" onclick="addWorkload()">+ Add Workload</button>
+            <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+            <button class="btn btn-text" onclick="clearAll()">Clear All</button>
+        </div>
     </div>
 
-    <div class="btn-group">
-        <button class="btn btn-add" onclick="addWorkload()">+ Add Workload</button>
+    <!-- ── Delta banner ── -->
+    <div class="delta-banner" id="deltaBanner">
+        <div class="delta-label">Difference</div>
+        <div class="delta-nums" id="deltaText">-</div>
+        <div class="delta-detail" id="deltaDetail">-</div>
     </div>
 
-    <!-- ═══ Impact summary ═══ -->
-    <div class="impact-section" id="impactSection" style="display:none;">
-        <h3>Impact Analysis</h3>
-        <div class="impact-cards">
-            <div class="impact-card">
-                <div class="label">Correction Factor</div>
-                <div class="value" id="impactFactor">-</div>
-                <div class="delta delta-up" id="impactFactorDesc">New / Old effective TPM</div>
+    <!-- ── Side-by-side results ── -->
+    <div class="comparison" id="comparisonGrid" style="display:none;">
+
+        <!-- LEFT: Current Calculator -->
+        <div class="calc-card current">
+            <div class="calc-header">
+                <h3>Current Calculator</h3>
+                <span class="tag tag-current">Equal Weight 1:1</span>
             </div>
-            <div class="impact-card">
-                <div class="label">Old Total Effective TPM</div>
-                <div class="value" id="impactOldTPM">-</div>
-                <div class="delta delta-neutral">Equal token weight (1:1)</div>
+            <div class="calc-subtitle">
+                Treats input and output tokens identically.<br>
+                Effective TPM = RPM × (Input + Output)
             </div>
-            <div class="impact-card">
-                <div class="label">New Total Effective TPM</div>
-                <div class="value val-new" id="impactNewTPM">-</div>
-                <div class="delta delta-up" id="impactTPMDelta">-</div>
+            <div class="gpu-hero">
+                <div class="label">A100 GPUs Required</div>
+                <div class="number current-num" id="currentGPU">—</div>
+                <div class="unit">GPUs</div>
             </div>
-            <div class="impact-card">
-                <div class="label">Output Multiplier Applied</div>
-                <div class="value val-new" id="impactMultiplier">-</div>
-                <div class="delta delta-neutral" id="impactModelName">-</div>
+            <div class="breakdown">
+                <table>
+                    <thead>
+                        <tr><th>Workload</th><th>Effective TPM</th><th style="text-align:right;">GPUs</th></tr>
+                    </thead>
+                    <tbody id="currentBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- RIGHT: Weighted Calculator -->
+        <div class="calc-card weighted">
+            <div class="calc-header">
+                <h3>Weighted Calculator</h3>
+                <span class="tag tag-weighted" id="weightTag">Output ×8</span>
+            </div>
+            <div class="calc-subtitle">
+                Weights output tokens by compute cost.<br>
+                Effective TPM = RPM × (Input + <strong id="subtitleMult">8</strong> × Output)
+            </div>
+            <div class="gpu-hero">
+                <div class="label">A100 GPUs Required</div>
+                <div class="number weighted-num" id="weightedGPU">—</div>
+                <div class="unit">GPUs</div>
+            </div>
+            <div class="breakdown">
+                <table>
+                    <thead>
+                        <tr><th>Workload</th><th>Effective TPM</th><th style="text-align:right;">GPUs</th></tr>
+                    </thead>
+                    <tbody id="weightedBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- ═══ Results comparison ═══ -->
-    <div class="results-grid" id="resultsGrid" style="display:none;">
-        <!-- OLD METHOD -->
-        <div class="result-panel old-method">
-            <div class="panel-header">
-                Current Method <span class="badge badge-old">Equal Weight (1:1)</span>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Workload</th>
-                        <th>GPU (Premium)</th>
-                        <th>GPU (Standard)</th>
-                        <th>GPU (Async)</th>
-                        <th>Cost (Premium)</th>
-                        <th>Cost (Standard)</th>
-                        <th>Cost (Async)</th>
-                    </tr>
-                </thead>
-                <tbody id="oldResultsBody"></tbody>
-                <tfoot>
-                    <tr class="totals-row" id="oldTotalsRow">
-                        <td><strong>Totals</strong></td>
-                        <td id="oldTotalGPU_P">-</td>
-                        <td id="oldTotalGPU_S">-</td>
-                        <td id="oldTotalGPU_A">-</td>
-                        <td id="oldTotalCost_P">-</td>
-                        <td id="oldTotalCost_S">-</td>
-                        <td id="oldTotalCost_A">-</td>
-                    </tr>
-                </tfoot>
-            </table>
+    <!-- ── Expandable: Show Math ── -->
+    <details id="mathDetails">
+        <summary>Show Math — Step-by-step calculation walkthrough</summary>
+        <div class="detail-body" id="mathContent">
+            <p style="color:#605e5c;">Click <strong>Calculate</strong> to see the math.</p>
         </div>
+    </details>
 
-        <!-- NEW METHOD -->
-        <div class="result-panel new-method">
-            <div class="panel-header">
-                Corrected Method <span class="badge badge-new">Weighted Output (×<span id="panelMultiplier">-</span>)</span>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Workload</th>
-                        <th>GPU (Premium)</th>
-                        <th>GPU (Standard)</th>
-                        <th>GPU (Async)</th>
-                        <th>Cost (Premium)</th>
-                        <th>Cost (Standard)</th>
-                        <th>Cost (Async)</th>
-                    </tr>
-                </thead>
-                <tbody id="newResultsBody"></tbody>
-                <tfoot>
-                    <tr class="totals-row" id="newTotalsRow">
-                        <td><strong>Totals</strong></td>
-                        <td id="newTotalGPU_P">-</td>
-                        <td id="newTotalGPU_S">-</td>
-                        <td id="newTotalGPU_A">-</td>
-                        <td id="newTotalCost_P">-</td>
-                        <td id="newTotalCost_S">-</td>
-                        <td id="newTotalCost_A">-</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-
-    <!-- ═══ Show Math Walkthrough ═══ -->
-    <div class="math-section" id="mathSection">
-        <div class="math-panel">
-            <div class="math-panel-header">
-                <svg width="18" height="18" fill="none" stroke="#8764b8" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><line x1="17" y1="14" x2="17" y2="20"/><line x1="14" y1="17" x2="20" y2="17"/></svg>
-                Calculation Walkthrough
-                <span class="badge-math">Step-by-Step</span>
-            </div>
-            <div id="mathContent">
-                <div style="padding:24px;color:#605e5c;text-align:center;">Click <strong>Calculate &amp; Compare</strong> to see the math walkthrough.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══ Advanced Settings ═══ -->
-    <button class="settings-toggle" onclick="toggleSettings()">
-        <svg id="settingsArrow" width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style="transition:transform .2s"><path d="M4 2l4 4-4 4"/></svg>
-        Advanced Settings — Model Benchmarks &amp; Pricing
-    </button>
-    <div class="settings-panel" id="settingsPanel">
-        <p style="font-size:13px;color:#605e5c;margin-bottom:12px;">
-            Adjust throughput benchmarks (TPM per GPU) and cost per GPU per day for each model.
-            Output multipliers are sourced from OpenAI public pricing ratios.
-        </p>
-        <div class="settings-grid" id="settingsGrid">
-            <!-- Generated by JS -->
-        </div>
-    </div>
-
-    <!-- ═══ Platform Actuals from Kusto ═══ -->
-    <div class="ref-section" id="kustoActuals">
-        <h3>📊 Platform Actuals — Kusto Telemetry (Last 7 Days)</h3>
-        <p style="font-size:12px;color:#605e5c;margin-bottom:8px;">
-            Source: <code>inferencedashboardlog.westus2/LLMAPI</code> — <code>GetDetailedDailyGPUDemands</code>.
-            Benchmarks below are derived from actual GPU demand and token throughput. Cost: <strong>$36.50/GPU/day</strong> (uniform).
-        </p>
-        <div class="table-container">
-            <table class="ref-table" id="kustoTable">
-                <thead>
-                    <tr>
-                        <th>Model (Kusto)</th>
-                        <th>Avg Daily GPUs</th>
-                        <th>Old TPM/GPU</th>
-                        <th>New TPM/GPU</th>
-                        <th>Multiplier</th>
-                        <th>Correction</th>
-                        <th>Avg Input/Req</th>
-                        <th>Avg Output/Req</th>
-                        <th>Out/In Ratio</th>
-                    </tr>
-                </thead>
-                <tbody id="kustoTableBody">
-                    <!-- populated by JS from KUSTO_ACTUALS -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- ═══ OpenAI Pricing Reference ═══ -->
-    <div class="ref-section" style="margin-top:12px;">
-        <h3>OpenAI Pricing Reference (source for output multipliers)</h3>
-        <p style="font-size:12px;color:#605e5c;margin-bottom:8px;">
-            Source: <a href="https://openai.com/api/pricing/" target="_blank">openai.com/api/pricing</a> — Retrieved March 2026.
-            Output multiplier = Output $/1M ÷ Input $/1M.
-        </p>
-        <div class="table-container">
-            <table class="ref-table">
+    <!-- ── Expandable: Assumptions ── -->
+    <details id="assumptionsDetails">
+        <summary>Assumptions — Model benchmarks, multipliers &amp; methodology</summary>
+        <div class="detail-body">
+            <p style="font-size:13px;color:#605e5c;margin-bottom:12px;">
+                <strong>Current calculator</strong> (left): Effective TPM = RPM × (Input + Output). GPU = ⌈ Effective TPM ÷ TPM/GPU ⌉.<br>
+                <strong>Weighted calculator</strong> (right): Effective TPM = RPM × (Input + Multiplier × Output). GPU = ⌈ Effective TPM ÷ TPM/GPU ⌉.<br><br>
+                Output multipliers from <a href="https://openai.com/api/pricing/" target="_blank">OpenAI pricing</a> (output $/M ÷ input $/M).
+                GPT-5.x / reasoning → <strong>8×</strong>. GPT-4.x → <strong>4×</strong>.
+                Per Anna's follow-up: 5.1/5.2 chat &amp; reasoning → 8×, 4.1 short-co → 4×.<br>
+                TPM/GPU benchmarks: illustrative A100e throughput. Cost: <strong>$36.50/GPU/day</strong>.
+            </p>
+            <table class="assumptions-table" id="assumptionsTable">
                 <thead>
                     <tr>
                         <th>Model</th>
-                        <th>Input ($/1M tokens)</th>
-                        <th>Output ($/1M tokens)</th>
-                        <th>Output/Input Ratio</th>
-                        <th>Multiplier Used</th>
+                        <th>Output Multiplier</th>
+                        <th>TPM/GPU (A100)</th>
+                        <th>$/GPU/Day</th>
                     </tr>
                 </thead>
+                <tbody id="assumptionsBody"></tbody>
+            </table>
+        </div>
+    </details>
+
+    <!-- ── Expandable: OpenAI pricing reference ── -->
+    <details>
+        <summary>OpenAI Pricing Reference</summary>
+        <div class="detail-body">
+            <p style="font-size:12px;color:#605e5c;margin-bottom:8px;">
+                Source: <a href="https://openai.com/api/pricing/" target="_blank">openai.com/api/pricing</a> — March 2026. Multiplier = Output $/1M ÷ Input $/1M.
+            </p>
+            <table class="assumptions-table">
+                <thead><tr><th>Model</th><th>Input $/1M</th><th>Output $/1M</th><th>Ratio</th><th>Multiplier Used</th></tr></thead>
                 <tbody>
-                    <tr><td>GPT-5.2</td><td>$1.75</td><td>$14.00</td><td class="ratio">8.0×</td><td><strong>8×</strong></td></tr>
-                    <tr><td>GPT-5 mini</td><td>$0.25</td><td>$2.00</td><td class="ratio">8.0×</td><td><strong>8×</strong></td></tr>
-                    <tr><td>GPT-4.1</td><td>$2.00</td><td>$8.00</td><td class="ratio">4.0×</td><td><strong>4×</strong></td></tr>
-                    <tr><td>GPT-4.1 mini</td><td>$0.40</td><td>$1.60</td><td class="ratio">4.0×</td><td><strong>4×</strong></td></tr>
-                    <tr><td>GPT-4.1 nano</td><td>$0.10</td><td>$0.40</td><td class="ratio">4.0×</td><td><strong>4×</strong></td></tr>
-                    <tr><td>o4-mini</td><td>$1.10</td><td>$4.40</td><td class="ratio">4.0×</td><td><strong>4×</strong></td></tr>
+                    <tr><td>GPT-5.2</td><td>$1.75</td><td>$14.00</td><td>8.0×</td><td><strong>8×</strong></td></tr>
+                    <tr><td>GPT-5 mini</td><td>$0.25</td><td>$2.00</td><td>8.0×</td><td><strong>8×</strong></td></tr>
+                    <tr><td>GPT-4.1</td><td>$2.00</td><td>$8.00</td><td>4.0×</td><td><strong>4×</strong></td></tr>
+                    <tr><td>GPT-4.1 mini</td><td>$0.40</td><td>$1.60</td><td>4.0×</td><td><strong>4×</strong></td></tr>
+                    <tr><td>GPT-4.1 nano</td><td>$0.10</td><td>$0.40</td><td>4.0×</td><td><strong>4×</strong></td></tr>
+                    <tr><td>o4-mini</td><td>$1.10</td><td>$4.40</td><td>4.0×</td><td><strong>4×</strong></td></tr>
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <!-- ═══ Methodology ═══ -->
-    <div class="ref-section" style="margin-top:12px;">
-        <h3>Methodology</h3>
-        <div style="font-size:13px;color:#605e5c;line-height:1.7;">
-            <p><strong>Old method (current calculator):</strong></p>
-            <p style="margin-left:16px;">
-                Effective TPM = RPM × (Input Tokens + Output Tokens)<br>
-                GPU = ⌈ Effective TPM ÷ <em>Old</em> TPM-per-GPU benchmark ⌉<br>
-                Cost = GPU × $36.50/day × Period multiplier
-            </p>
-            <p style="margin-top:8px;"><strong>New method (weighted output):</strong></p>
-            <p style="margin-left:16px;">
-                Effective TPM = RPM × (Input Tokens + <span style="color:#0078d4;font-weight:600;">Multiplier</span> × Output Tokens)<br>
-                GPU = ⌈ Effective TPM ÷ <em>New</em> TPM-per-GPU benchmark ⌉<br>
-                Cost = GPU × $36.50/day × Period multiplier
-            </p>
-            <p style="margin-top:8px;"><strong>Why two benchmarks?</strong> The old benchmark measured raw token throughput per GPU. The new benchmark
-            re-calibrates to "weighted tokens per GPU" using the same real telemetry. This ensures that for the platform's current average
-            workload mix, old and new methods yield the same GPU count. But for <em>new workloads</em> with different output intensities,
-            the weighted method correctly adjusts the GPU estimate.</p>
-            <p style="margin-top:8px;"><strong>Multiplier source:</strong> 5.1/5.2 chat & reasoning → 8× | 4.1 short-context → 4× (per Anna's follow-up). Validated against OpenAI public pricing ratios.</p>
-            <p style="margin-top:8px;"><strong>Benchmarks source:</strong> <code>inferencedashboardlog.westus2/LLMAPI</code> Kusto — 7-day rolling average as of March 2026. Cost: $36.50/GPU/day (A100e).</p>
-        </div>
-    </div>
+    </details>
 
     <div class="footer">
-        PGU Calculator v2.1 — GPU Team &amp; LLM API Capacity Planning — Benchmarks from Kusto telemetry — March 2026
+        GPU Calculator Comparison v3.0 — GPU Team &amp; LLM API Capacity Planning — March 2026
     </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════ -->
-<!-- ══════════ JAVASCRIPT ══════════════════════════════════ -->
-<!-- ══════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════ -->
+<!-- ═══ JAVASCRIPT ════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════ -->
 <script>
-// ────────────────────────────────────────────────────
-// MODEL CONFIGURATION
-// Output multiplier: ratio of output cost to input cost from OpenAI pricing
-// tpmPerGPU: estimated tokens-per-minute throughput a single GPU can handle (by tier)
-// costPerGPUPerDay: illustrative $/GPU/day by tier
-// ────────────────────────────────────────────────────
 const MODEL_CONFIG = {
-    'GPT-4o': {
-        outputMultiplier: 4,
-        tpmPerGPU: { premium: 35000, standard: 70000, async: 140000 },
-        costPerGPUPerDay: { premium: 100, standard: 60, async: 30 }
-    },
-    'GPT-4o mini': {
-        outputMultiplier: 4,
-        tpmPerGPU: { premium: 100000, standard: 200000, async: 400000 },
-        costPerGPUPerDay: { premium: 40, standard: 24, async: 12 }
-    },
-    '4o Image Gen': {
-        outputMultiplier: 1,
-        tpmPerGPU: { premium: 5000, standard: 10000, async: 20000 },
-        costPerGPUPerDay: { premium: 150, standard: 90, async: 45 }
-    },
-    'GPT-4.1': {
-        outputMultiplier: 4,
-        tpmPerGPU: { premium: 40000, standard: 80000, async: 160000 },
-        costPerGPUPerDay: { premium: 95, standard: 57, async: 28 }
-    },
-    'GPT-4.1 mini': {
-        outputMultiplier: 4,
-        tpmPerGPU: { premium: 120000, standard: 240000, async: 480000 },
-        costPerGPUPerDay: { premium: 38, standard: 23, async: 11 }
-    },
-    'GPT-4.1 nano': {
-        outputMultiplier: 4,
-        tpmPerGPU: { premium: 300000, standard: 600000, async: 1200000 },
-        costPerGPUPerDay: { premium: 18, standard: 11, async: 5 }
-    },
-    'GPT-5.1': {
-        outputMultiplier: 8,
-        tpmPerGPU: { premium: 20000, standard: 40000, async: 80000 },
-        costPerGPUPerDay: { premium: 110, standard: 66, async: 33 }
-    },
-    'GPT-5.2': {
-        outputMultiplier: 8,
-        tpmPerGPU: { premium: 15000, standard: 30000, async: 60000 },
-        costPerGPUPerDay: { premium: 120, standard: 72, async: 36 }
-    },
-    'GPT-5 mini': {
-        outputMultiplier: 8,
-        tpmPerGPU: { premium: 50000, standard: 100000, async: 200000 },
-        costPerGPUPerDay: { premium: 50, standard: 30, async: 15 }
-    },
-    'o1': {
-        outputMultiplier: 4,
-        tpmPerGPU: { premium: 12000, standard: 24000, async: 48000 },
-        costPerGPUPerDay: { premium: 130, standard: 78, async: 39 }
-    },
-    'o3': {
-        outputMultiplier: 8,
-        tpmPerGPU: { premium: 10000, standard: 20000, async: 40000 },
-        costPerGPUPerDay: { premium: 140, standard: 84, async: 42 }
-    },
-    'o3-mini': {
-        outputMultiplier: 4,
-        tpmPerGPU: { premium: 50000, standard: 100000, async: 200000 },
-        costPerGPUPerDay: { premium: 55, standard: 33, async: 16 }
-    },
-    'o4-mini': {
-        outputMultiplier: 4,
-        tpmPerGPU: { premium: 55000, standard: 110000, async: 220000 },
-        costPerGPUPerDay: { premium: 50, standard: 30, async: 15 }
-    }
+    'GPT-4o':       { mult: 4, tpmPerGPU: 35000,  costPerDay: 36.50 },
+    'GPT-4o mini':  { mult: 4, tpmPerGPU: 100000, costPerDay: 36.50 },
+    '4o Image Gen': { mult: 1, tpmPerGPU: 5000,   costPerDay: 36.50 },
+    'GPT-4.1':      { mult: 4, tpmPerGPU: 40000,  costPerDay: 36.50 },
+    'GPT-4.1 mini': { mult: 4, tpmPerGPU: 120000, costPerDay: 36.50 },
+    'GPT-4.1 nano': { mult: 4, tpmPerGPU: 300000, costPerDay: 36.50 },
+    'GPT-5.1':      { mult: 8, tpmPerGPU: 20000,  costPerDay: 36.50 },
+    'GPT-5.2':      { mult: 8, tpmPerGPU: 15000,  costPerDay: 36.50 },
+    'GPT-5 mini':   { mult: 8, tpmPerGPU: 50000,  costPerDay: 36.50 },
+    'o1':           { mult: 4, tpmPerGPU: 12000,  costPerDay: 36.50 },
+    'o3':           { mult: 8, tpmPerGPU: 10000,  costPerDay: 36.50 },
+    'o3-mini':      { mult: 4, tpmPerGPU: 50000,  costPerDay: 36.50 },
+    'o4-mini':      { mult: 4, tpmPerGPU: 55000,  costPerDay: 36.50 }
 };
 
-const PERIOD_MULTIPLIER = { daily: 1, weekly: 7, monthly: 30 };
+let wlCounter = 0;
 
-let workloadCounter = 0;
+function getCfg() { return MODEL_CONFIG[document.getElementById('modelSelect').value]; }
 
-// ────────────────────────────────────────────────────
-// INIT
-// ────────────────────────────────────────────────────
+// ── Init ──
 function init() {
-    addWorkload();  // start with one row
+    addWorkload();
     onModelChange();
-    renderSettings();
+    renderAssumptions();
 }
 
-// ────────────────────────────────────────────────────
-// WORKLOAD ROWS
-// ────────────────────────────────────────────────────
+// ── Model change ──
+function onModelChange() {
+    const c = getCfg();
+    document.getElementById('outMultDisplay').value = c.mult + '×';
+    document.getElementById('tpmGpuDisplay').value = c.tpmPerGPU.toLocaleString();
+}
+
+// ── Workload rows ──
 function addWorkload() {
-    workloadCounter++;
-    const id = workloadCounter;
-    const tbody = document.getElementById('workloadBody');
+    wlCounter++;
+    const id = wlCounter;
     const tr = document.createElement('tr');
     tr.id = `wl-${id}`;
     tr.innerHTML = `
-        <td><input type="text" value="Workload ${id}" data-field="name"></td>
-        <td><input type="number" value="100" min="0" data-field="rpm" oninput="computeTPM(${id})"></td>
-        <td><input type="number" value="1500" min="0" data-field="inputTokens" oninput="computeTPM(${id})"></td>
-        <td><input type="number" value="800" min="0" data-field="outputTokens" oninput="computeTPM(${id})"></td>
-        <td><input type="text" class="computed" data-field="tpm" readonly></td>
-        <td><input type="text" class="computed" data-field="oldTPM" readonly></td>
-        <td><input type="text" class="computed" data-field="newTPM" readonly></td>
-        <td><button class="btn-danger" onclick="removeWorkload(${id})" title="Remove workload">🗑</button></td>
+        <td><input type="text" value="Workload ${id}" data-field="name" style="min-width:120px;"></td>
+        <td><input type="number" value="100" min="0" data-field="rpm"></td>
+        <td><input type="number" value="1500" min="0" data-field="input"></td>
+        <td><input type="number" value="800" min="0" data-field="output"></td>
+        <td><button class="btn-remove" onclick="removeWL(${id})" title="Remove">×</button></td>
     `;
-    tbody.appendChild(tr);
-    computeTPM(id);
+    document.getElementById('workloadBody').appendChild(tr);
 }
 
-function removeWorkload(id) {
+function removeWL(id) {
     const row = document.getElementById(`wl-${id}`);
     if (row) row.remove();
-    updateTotals();
 }
 
-function getWorkloadData() {
+function getWorkloads() {
     const rows = document.querySelectorAll('#workloadBody tr');
-    const model = document.getElementById('modelSelect').value;
-    const cfg = MODEL_CONFIG[model];
-    const data = [];
+    const c = getCfg();
+    const wls = [];
     rows.forEach(row => {
-        const name = row.querySelector('[data-field="name"]').value;
+        const name = row.querySelector('[data-field="name"]').value || 'Unnamed';
         const rpm = parseFloat(row.querySelector('[data-field="rpm"]').value) || 0;
-        const inputTokens = parseFloat(row.querySelector('[data-field="inputTokens"]').value) || 0;
-        const outputTokens = parseFloat(row.querySelector('[data-field="outputTokens"]').value) || 0;
-        const tpm = rpm * inputTokens;
-        const oldEffective = rpm * (inputTokens + outputTokens);
-        const newEffective = rpm * (inputTokens + cfg.outputMultiplier * outputTokens);
-        data.push({ name, rpm, inputTokens, outputTokens, tpm, oldEffective, newEffective });
+        const inp = parseFloat(row.querySelector('[data-field="input"]').value) || 0;
+        const out = parseFloat(row.querySelector('[data-field="output"]').value) || 0;
+        const currentTPM = rpm * (inp + out);
+        const weightedTPM = rpm * (inp + c.mult * out);
+        wls.push({ name, rpm, inp, out, currentTPM, weightedTPM });
     });
-    return data;
+    return wls;
 }
 
-// ────────────────────────────────────────────────────
-// AUTO-COMPUTE TPM FIELDS
-// ────────────────────────────────────────────────────
-function computeTPM(id) {
-    const row = document.getElementById(`wl-${id}`);
-    if (!row) return;
-    const rpm = parseFloat(row.querySelector('[data-field="rpm"]').value) || 0;
-    const input = parseFloat(row.querySelector('[data-field="inputTokens"]').value) || 0;
-    const output = parseFloat(row.querySelector('[data-field="outputTokens"]').value) || 0;
-    const model = document.getElementById('modelSelect').value;
-    const mult = MODEL_CONFIG[model].outputMultiplier;
-
-    const tpm = rpm * input;
-    const oldTPM = rpm * (input + output);
-    const newTPM = rpm * (input + mult * output);
-
-    row.querySelector('[data-field="tpm"]').value = tpm.toLocaleString();
-    row.querySelector('[data-field="oldTPM"]').value = oldTPM.toLocaleString();
-    row.querySelector('[data-field="newTPM"]').value = newTPM.toLocaleString();
-    updateTotals();
-}
-
-function recomputeAllTPM() {
-    const rows = document.querySelectorAll('#workloadBody tr');
-    rows.forEach(row => {
-        const id = row.id.split('-')[1];
-        computeTPM(id);
-    });
-}
-
-function updateTotals() {
-    const data = getWorkloadData();
-    const totalRPM = data.reduce((s, d) => s + d.rpm, 0);
-    const totalTPM = data.reduce((s, d) => s + d.tpm, 0);
-    const totalOld = data.reduce((s, d) => s + d.oldEffective, 0);
-    const totalNew = data.reduce((s, d) => s + d.newEffective, 0);
-
-    document.getElementById('totalRPM').textContent = totalRPM.toLocaleString();
-    document.getElementById('totalTPM').textContent = totalTPM.toLocaleString();
-    document.getElementById('totalOldTPM').textContent = totalOld.toLocaleString();
-    document.getElementById('totalNewTPM').textContent = totalNew.toLocaleString();
-}
-
-// ────────────────────────────────────────────────────
-// MODEL CHANGE
-// ────────────────────────────────────────────────────
-function onModelChange() {
-    const model = document.getElementById('modelSelect').value;
-    const cfg = MODEL_CONFIG[model];
-    document.getElementById('currentMultiplier').value = cfg.outputMultiplier + '×';
-    recomputeAllTPM();
-    renderSettings();
-}
-
-// ────────────────────────────────────────────────────
-// CALCULATE
-// ────────────────────────────────────────────────────
+// ── Calculate ──
 function calculate() {
     const model = document.getElementById('modelSelect').value;
-    const cfg = MODEL_CONFIG[model];
-    const period = document.getElementById('timePeriod').value;
-    const periodMult = PERIOD_MULTIPLIER[period];
-    const data = getWorkloadData();
+    const c = getCfg();
+    const wls = getWorkloads();
+    if (wls.length === 0) return;
 
-    if (data.length === 0) return;
+    const tpmGPU = c.tpmPerGPU;
 
-    // Compute per-workload GPU & cost
-    const oldResults = [];
-    const newResults = [];
-    const tiers = ['premium', 'standard', 'async'];
+    let totalCurrentGPU = 0;
+    let totalWeightedGPU = 0;
+    const currentRows = [];
+    const weightedRows = [];
 
-    data.forEach(wl => {
-        const oldRow = { name: wl.name };
-        const newRow = { name: wl.name };
-        tiers.forEach(tier => {
-            const tpmPerGPU = cfg.tpmPerGPU[tier];
-            const costPerGPUPerDay = cfg.costPerGPUPerDay[tier];
-
-            const oldGPU = Math.ceil(wl.oldEffective / tpmPerGPU);
-            const newGPU = Math.ceil(wl.newEffective / tpmPerGPU);
-            const oldCost = oldGPU * costPerGPUPerDay * periodMult;
-            const newCost = newGPU * costPerGPUPerDay * periodMult;
-
-            oldRow[`gpu_${tier}`] = oldGPU;
-            oldRow[`cost_${tier}`] = oldCost;
-            newRow[`gpu_${tier}`] = newGPU;
-            newRow[`cost_${tier}`] = newCost;
-        });
-        oldResults.push(oldRow);
-        newResults.push(newRow);
+    wls.forEach(wl => {
+        const cGPU = Math.ceil(wl.currentTPM / tpmGPU);
+        const wGPU = Math.ceil(wl.weightedTPM / tpmGPU);
+        totalCurrentGPU += cGPU;
+        totalWeightedGPU += wGPU;
+        currentRows.push({ name: wl.name, tpm: wl.currentTPM, gpu: cGPU });
+        weightedRows.push({ name: wl.name, tpm: wl.weightedTPM, gpu: wGPU });
     });
 
-    // Render old results
-    renderResultTable('oldResultsBody', oldResults, tiers, false);
-    renderResultTable('newResultsBody', newResults, tiers, true);
+    // Show results
+    document.getElementById('comparisonGrid').style.display = '';
 
-    // Totals
-    tiers.forEach(tier => {
-        const oldGPUTotal = oldResults.reduce((s, r) => s + r[`gpu_${tier}`], 0);
-        const newGPUTotal = newResults.reduce((s, r) => s + r[`gpu_${tier}`], 0);
-        const oldCostTotal = oldResults.reduce((s, r) => s + r[`cost_${tier}`], 0);
-        const newCostTotal = newResults.reduce((s, r) => s + r[`cost_${tier}`], 0);
-        const tierKey = tier[0].toUpperCase(); // P, S, A
+    // Hero numbers
+    document.getElementById('currentGPU').textContent = totalCurrentGPU.toLocaleString();
+    document.getElementById('weightedGPU').textContent = totalWeightedGPU.toLocaleString();
 
-        document.getElementById(`oldTotalGPU_${tierKey}`).textContent = oldGPUTotal.toLocaleString();
-        document.getElementById(`oldTotalCost_${tierKey}`).textContent = '$' + oldCostTotal.toLocaleString();
-        document.getElementById(`newTotalGPU_${tierKey}`).textContent = newGPUTotal.toLocaleString();
-        document.getElementById(`newTotalCost_${tierKey}`).textContent = '$' + newCostTotal.toLocaleString();
-    });
+    // Tags
+    document.getElementById('weightTag').textContent = `Output ×${c.mult}`;
+    document.getElementById('subtitleMult').textContent = c.mult;
 
-    // Impact
-    const totalOldTPM = data.reduce((s, d) => s + d.oldEffective, 0);
-    const totalNewTPM = data.reduce((s, d) => s + d.newEffective, 0);
-    const factor = totalOldTPM > 0 ? (totalNewTPM / totalOldTPM) : 0;
+    // Breakdown tables
+    fillBreakdown('currentBody', currentRows, totalCurrentGPU, 'current-num');
+    fillBreakdown('weightedBody', weightedRows, totalWeightedGPU, 'weighted-num');
 
-    document.getElementById('impactFactor').textContent = factor.toFixed(2) + '×';
-    document.getElementById('impactOldTPM').textContent = totalOldTPM.toLocaleString();
-    document.getElementById('impactNewTPM').textContent = totalNewTPM.toLocaleString();
-    const delta = totalNewTPM - totalOldTPM;
-    const pctIncrease = totalOldTPM > 0 ? ((delta / totalOldTPM) * 100).toFixed(0) : 0;
-    document.getElementById('impactTPMDelta').textContent = `+${delta.toLocaleString()} TPM (+${pctIncrease}%)`;
-    document.getElementById('impactMultiplier').textContent = cfg.outputMultiplier + '×';
-    document.getElementById('impactModelName').textContent = model;
-    document.getElementById('panelMultiplier').textContent = cfg.outputMultiplier;
+    // Delta banner
+    const delta = totalWeightedGPU - totalCurrentGPU;
+    const pct = totalCurrentGPU > 0 ? ((delta / totalCurrentGPU) * 100).toFixed(0) : 0;
+    const banner = document.getElementById('deltaBanner');
+    banner.classList.add('visible');
+    document.getElementById('deltaText').textContent = `+${delta.toLocaleString()} GPUs (${pct}% more)`;
+    document.getElementById('deltaDetail').textContent =
+        `Current: ${totalCurrentGPU.toLocaleString()} GPUs → Weighted: ${totalWeightedGPU.toLocaleString()} GPUs | Using ${c.mult}× output weight for ${model}`;
 
-    document.getElementById('impactSection').style.display = '';
-    document.getElementById('resultsGrid').style.display = '';
-
-    // Generate math walkthrough
-    generateMathWalkthrough(model, cfg, period, periodMult, data, oldResults, newResults);
+    // Math walkthrough
+    generateMath(model, c, wls, currentRows, weightedRows, totalCurrentGPU, totalWeightedGPU);
 }
 
-function renderResultTable(tbodyId, results, tiers, isNew) {
+function fillBreakdown(tbodyId, rows, total, numClass) {
     const tbody = document.getElementById(tbodyId);
     tbody.innerHTML = '';
-    results.forEach(r => {
+    rows.forEach(r => {
         const tr = document.createElement('tr');
-        let html = `<td>${r.name}</td>`;
-        tiers.forEach(tier => {
-            const cls = isNew ? 'val-new' : 'val-old';
-            html += `<td class="${cls}">${r[`gpu_${tier}`].toLocaleString()}</td>`;
-        });
-        tiers.forEach(tier => {
-            const cls = isNew ? 'val-new' : 'val-old';
-            html += `<td class="${cls}">$${r[`cost_${tier}`].toLocaleString()}</td>`;
-        });
-        tr.innerHTML = html;
+        tr.innerHTML = `
+            <td>${r.name}</td>
+            <td>${r.tpm.toLocaleString()}</td>
+            <td style="text-align:right;"><span class="gpu-val ${numClass}">${r.gpu.toLocaleString()}</span></td>
+        `;
         tbody.appendChild(tr);
     });
+    const totalTPM = rows.reduce((s, r) => s + r.tpm, 0);
+    const tr = document.createElement('tr');
+    tr.className = 'totals';
+    tr.innerHTML = `
+        <td>Total</td>
+        <td>${totalTPM.toLocaleString()}</td>
+        <td style="text-align:right;"><span class="gpu-val ${numClass}">${total.toLocaleString()}</span></td>
+    `;
+    tbody.appendChild(tr);
 }
 
-// ────────────────────────────────────────────────────
-// SHOW MATH TOGGLE
-// ────────────────────────────────────────────────────
-let mathVisible = false;
-function toggleMath() {
-    mathVisible = !mathVisible;
-    const section = document.getElementById('mathSection');
-    const btn = document.getElementById('btnShowMath');
-    if (mathVisible) {
-        section.classList.add('visible');
-        btn.classList.add('active');
-        btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><line x1="17" y1="14" x2="17" y2="20"/><line x1="14" y1="17" x2="20" y2="17"/></svg> Hide Math`;
-    } else {
-        section.classList.remove('visible');
-        btn.classList.remove('active');
-        btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><line x1="17" y1="14" x2="17" y2="20"/><line x1="14" y1="17" x2="20" y2="17"/></svg> Show Math`;
-    }
-}
-
-// ────────────────────────────────────────────────────
-// GENERATE MATH WALKTHROUGH
-// ────────────────────────────────────────────────────
-function generateMathWalkthrough(model, cfg, period, periodMult, data, oldResults, newResults) {
+// ── Math walkthrough ──
+function generateMath(model, c, wls, currentRows, weightedRows, totalCurrent, totalWeighted) {
     const container = document.getElementById('mathContent');
-    const tiers = ['premium', 'standard', 'async'];
-    const tierLabels = { premium: 'Premium', standard: 'Standard', async: 'Async' };
-    const mult = cfg.outputMultiplier;
-    const periodLabel = period.charAt(0).toUpperCase() + period.slice(1);
-
+    const mult = c.mult;
+    const tpmGPU = c.tpmPerGPU;
     let html = '';
 
-    // ── Assumptions section ──
-    html += `<div class="math-workload">`;
-    html += `<h4>Assumptions &amp; Configuration</h4>`;
-    html += `<div class="math-step step-assumption">`;
-    html += `<div class="math-step-label label-assumption">Model &amp; Parameters</div>`;
-    html += `<div class="math-formula">`;
-    html += `Model: <span class="hl-val">${model}</span><br>`;
-    html += `Output Multiplier: <span class="hl-mult">${mult}×</span>`;
-    html += ` <span style="color:#605e5c;font-size:11px;">(from OAI pricing: output tokens cost ${mult}× more than input tokens)</span><br>`;
-    html += `Time Period: <span class="hl-val">${periodLabel}</span> (× ${periodMult} days)<br>`;
-    html += `Cost per GPU per Day: `;
-    tiers.forEach((tier, i) => {
-        html += `${tierLabels[tier]}: <span class="hl-val">$${cfg.costPerGPUPerDay[tier]}</span>`;
-        if (i < tiers.length - 1) html += ' · ';
-    });
-    html += `<br>TPM per GPU benchmark: `;
-    tiers.forEach((tier, i) => {
-        html += `${tierLabels[tier]}: <span class="hl-val">${cfg.tpmPerGPU[tier].toLocaleString()}</span>`;
-        if (i < tiers.length - 1) html += ' · ';
-    });
-    html += `</div>`;
-    html += `<div class="math-note">Output multiplier means each output token is treated as ${mult} "equivalent input tokens" for GPU sizing.</div>`;
-    html += `</div></div>`;
+    wls.forEach((wl, i) => {
+        const cR = currentRows[i];
+        const wR = weightedRows[i];
+        html += `<h4 style="margin:${i > 0 ? '20px' : '0'} 0 10px;font-size:14px;font-weight:600;">${wl.name}</h4>`;
 
-    // ── Per-workload walkthrough ──
-    data.forEach((wl, idx) => {
-        const oldR = oldResults[idx];
-        const newR = newResults[idx];
-        html += `<div class="math-workload">`;
-        html += `<h4>${wl.name} <span class="wl-badge">Workload ${idx + 1}</span></h4>`;
-
-        // Step 1: Inputs
-        html += `<div class="math-step step-assumption">`;
-        html += `<div class="math-step-label label-assumption">Step 1 — Inputs</div>`;
-        html += `<div class="math-formula">`;
-        html += `Peak RPM = <span class="hl-val">${wl.rpm.toLocaleString()}</span> requests/min<br>`;
-        html += `Avg Input Tokens/Req = <span class="hl-val">${wl.inputTokens.toLocaleString()}</span><br>`;
-        html += `Avg Output Tokens/Req = <span class="hl-val">${wl.outputTokens.toLocaleString()}</span><br>`;
-        html += `Input TPM = RPM × Input Tokens = ${wl.rpm.toLocaleString()} × ${wl.inputTokens.toLocaleString()} = <span class="hl-val">${wl.tpm.toLocaleString()}</span>`;
+        // Inputs
+        html += `<div class="math-step step-input">`;
+        html += `<div class="math-step-title t-input">Inputs</div>`;
+        html += `<div class="math-code">`;
+        html += `RPM = <span class="hl-b">${wl.rpm.toLocaleString()}</span> · Input Tokens = <span class="hl-b">${wl.inp.toLocaleString()}</span> · Output Tokens = <span class="hl-b">${wl.out.toLocaleString()}</span>`;
+        html += `<br>TPM/GPU benchmark (A100) = <span class="hl-b">${tpmGPU.toLocaleString()}</span>`;
         html += `</div></div>`;
 
-        // Step 2: Old method
-        html += `<div class="math-step step-old">`;
-        html += `<div class="math-step-label label-old">Step 2 — Old Method (Equal Weight 1:1)</div>`;
-        html += `<div class="math-formula">`;
+        // Current
+        html += `<div class="math-step step-current">`;
+        html += `<div class="math-step-title t-current">Current Calculator (1:1 weight)</div>`;
+        html += `<div class="math-code">`;
         html += `Effective TPM = RPM × (Input + Output)<br>`;
-        html += `&nbsp;&nbsp;= ${wl.rpm.toLocaleString()} × (${wl.inputTokens.toLocaleString()} + ${wl.outputTokens.toLocaleString()})<br>`;
-        html += `&nbsp;&nbsp;= ${wl.rpm.toLocaleString()} × ${(wl.inputTokens + wl.outputTokens).toLocaleString()}<br>`;
-        html += `&nbsp;&nbsp;= <span class="hl-old">${wl.oldEffective.toLocaleString()}</span> TPM<br><br>`;
-        tiers.forEach(tier => {
-            const tpmG = cfg.tpmPerGPU[tier];
-            const cost = cfg.costPerGPUPerDay[tier];
-            const gpu = oldR[`gpu_${tier}`];
-            const totalCost = oldR[`cost_${tier}`];
-            html += `<strong>${tierLabels[tier]}:</strong><br>`;
-            html += `&nbsp;&nbsp;GPU = ⌈ ${wl.oldEffective.toLocaleString()} ÷ ${tpmG.toLocaleString()} ⌉ = ⌈ ${(wl.oldEffective / tpmG).toFixed(2)} ⌉ = <span class="hl-old">${gpu}</span> GPUs<br>`;
-            html += `&nbsp;&nbsp;Cost = ${gpu} GPU × $${cost}/day × ${periodMult} days = <span class="hl-old">$${totalCost.toLocaleString()}</span>/${periodLabel.toLowerCase()}<br>`;
-        });
-        html += `</div>`;
-        html += `<div class="math-note">Treats input and output tokens identically — no weighting applied.</div>`;
-        html += `</div>`;
-
-        // Step 3: New method
-        html += `<div class="math-step step-new">`;
-        html += `<div class="math-step-label label-new">Step 3 — New Method (Weighted Output ×${mult})</div>`;
-        html += `<div class="math-formula">`;
-        html += `Effective TPM = RPM × (Input + <span class="hl-mult">${mult}</span> × Output)<br>`;
-        html += `&nbsp;&nbsp;= ${wl.rpm.toLocaleString()} × (${wl.inputTokens.toLocaleString()} + <span class="hl-mult">${mult}</span> × ${wl.outputTokens.toLocaleString()})<br>`;
-        html += `&nbsp;&nbsp;= ${wl.rpm.toLocaleString()} × (${wl.inputTokens.toLocaleString()} + ${(mult * wl.outputTokens).toLocaleString()})<br>`;
-        html += `&nbsp;&nbsp;= ${wl.rpm.toLocaleString()} × ${(wl.inputTokens + mult * wl.outputTokens).toLocaleString()}<br>`;
-        html += `&nbsp;&nbsp;= <span class="hl-new">${wl.newEffective.toLocaleString()}</span> TPM<br><br>`;
-        tiers.forEach(tier => {
-            const tpmG = cfg.tpmPerGPU[tier];
-            const cost = cfg.costPerGPUPerDay[tier];
-            const gpu = newR[`gpu_${tier}`];
-            const totalCost = newR[`cost_${tier}`];
-            html += `<strong>${tierLabels[tier]}:</strong><br>`;
-            html += `&nbsp;&nbsp;GPU = ⌈ ${wl.newEffective.toLocaleString()} ÷ ${tpmG.toLocaleString()} ⌉ = ⌈ ${(wl.newEffective / tpmG).toFixed(2)} ⌉ = <span class="hl-new">${gpu}</span> GPUs<br>`;
-            html += `&nbsp;&nbsp;Cost = ${gpu} GPU × $${cost}/day × ${periodMult} days = <span class="hl-new">$${totalCost.toLocaleString()}</span>/${periodLabel.toLowerCase()}<br>`;
-        });
-        html += `</div>`;
-        html += `<div class="math-note">Each output token counts as ${mult} equivalent tokens because output generation is ${mult}× more compute-intensive.</div>`;
-        html += `</div>`;
-
-        // Step 4: Comparison for this workload
-        const wlFactor = wl.oldEffective > 0 ? (wl.newEffective / wl.oldEffective) : 0;
-        const wlDelta = wl.newEffective - wl.oldEffective;
-        const wlPct = wl.oldEffective > 0 ? ((wlDelta / wl.oldEffective) * 100).toFixed(1) : 0;
-        html += `<div class="math-step step-compare">`;
-        html += `<div class="math-step-label label-compare">Step 4 — Comparison</div>`;
-        html += `<div class="math-formula">`;
-        html += `Correction Factor = New Effective TPM ÷ Old Effective TPM<br>`;
-        html += `&nbsp;&nbsp;= ${wl.newEffective.toLocaleString()} ÷ ${wl.oldEffective.toLocaleString()}<br>`;
-        html += `&nbsp;&nbsp;= <span class="hl-delta">${wlFactor.toFixed(2)}×</span><br><br>`;
-        html += `TPM Increase: <span class="hl-delta">+${wlDelta.toLocaleString()}</span> (+${wlPct}%)<br>`;
-        html += `GPU Increase (Premium): <span class="hl-old">${oldR.gpu_premium}</span> → <span class="hl-new">${newR.gpu_premium}</span>`;
-        html += ` (<span class="hl-delta">+${newR.gpu_premium - oldR.gpu_premium}</span>)<br>`;
-        html += `Cost Increase (Premium/${periodLabel.toLowerCase()}): <span class="hl-old">$${oldR.cost_premium.toLocaleString()}</span> → <span class="hl-new">$${newR.cost_premium.toLocaleString()}</span>`;
-        html += ` (<span class="hl-delta">+$${(newR.cost_premium - oldR.cost_premium).toLocaleString()}</span>)`;
+        html += `&nbsp; = ${wl.rpm.toLocaleString()} × (${wl.inp.toLocaleString()} + ${wl.out.toLocaleString()}) = <span class="hl-g">${wl.currentTPM.toLocaleString()}</span><br>`;
+        html += `GPUs = ⌈ ${wl.currentTPM.toLocaleString()} ÷ ${tpmGPU.toLocaleString()} ⌉ = ⌈ ${(wl.currentTPM / tpmGPU).toFixed(2)} ⌉ = <span class="hl-g">${cR.gpu}</span>`;
         html += `</div></div>`;
 
-        html += `</div>`; // end math-workload
+        // Weighted
+        html += `<div class="math-step step-weighted">`;
+        html += `<div class="math-step-title t-weighted">Weighted Calculator (output ×${mult})</div>`;
+        html += `<div class="math-code">`;
+        html += `Effective TPM = RPM × (Input + <span class="hl-p">${mult}</span> × Output)<br>`;
+        html += `&nbsp; = ${wl.rpm.toLocaleString()} × (${wl.inp.toLocaleString()} + <span class="hl-p">${mult}</span> × ${wl.out.toLocaleString()})<br>`;
+        html += `&nbsp; = ${wl.rpm.toLocaleString()} × ${(wl.inp + mult * wl.out).toLocaleString()} = <span class="hl-b">${wl.weightedTPM.toLocaleString()}</span><br>`;
+        html += `GPUs = ⌈ ${wl.weightedTPM.toLocaleString()} ÷ ${tpmGPU.toLocaleString()} ⌉ = ⌈ ${(wl.weightedTPM / tpmGPU).toFixed(2)} ⌉ = <span class="hl-b">${wR.gpu}</span>`;
+        html += `</div></div>`;
+
+        // Delta
+        const d = wR.gpu - cR.gpu;
+        html += `<div class="math-step step-delta">`;
+        html += `<div class="math-step-title t-delta">Delta</div>`;
+        html += `<div class="math-code">`;
+        html += `GPU difference = ${wR.gpu} − ${cR.gpu} = <span class="hl-r">+${d}</span> GPUs`;
+        html += `</div></div>`;
     });
 
-    // ── Grand summary ──
-    const grandOldTPM = data.reduce((s, d) => s + d.oldEffective, 0);
-    const grandNewTPM = data.reduce((s, d) => s + d.newEffective, 0);
-    const grandFactor = grandOldTPM > 0 ? (grandNewTPM / grandOldTPM) : 0;
-    const grandDelta = grandNewTPM - grandOldTPM;
-    const grandPct = grandOldTPM > 0 ? ((grandDelta / grandOldTPM) * 100).toFixed(1) : 0;
-
-    html += `<div class="math-summary">`;
-    html += `<h4>Grand Total Summary (${data.length} workload${data.length > 1 ? 's' : ''})</h4>`;
-    html += `<div class="math-summary-grid">`;
-
-    html += `<div class="math-summary-item">`;
-    html += `<strong>Old Total Effective TPM:</strong> ${grandOldTPM.toLocaleString()}`;
-    html += `</div>`;
-
-    html += `<div class="math-summary-item">`;
-    html += `<strong>New Total Effective TPM:</strong> <span style="color:#0078d4;font-weight:600;">${grandNewTPM.toLocaleString()}</span>`;
-    html += `</div>`;
-
-    html += `<div class="math-summary-item">`;
-    html += `<strong>Overall Correction Factor:</strong> <span style="color:#d13438;font-weight:600;">${grandFactor.toFixed(2)}×</span> (+${grandPct}%)`;
-    html += `</div>`;
-
-    tiers.forEach(tier => {
-        const oldGPU = oldResults.reduce((s, r) => s + r[`gpu_${tier}`], 0);
-        const newGPU = newResults.reduce((s, r) => s + r[`gpu_${tier}`], 0);
-        const oldCost = oldResults.reduce((s, r) => s + r[`cost_${tier}`], 0);
-        const newCost = newResults.reduce((s, r) => s + r[`cost_${tier}`], 0);
-        html += `<div class="math-summary-item">`;
-        html += `<strong>${tierLabels[tier]}:</strong> `;
-        html += `${oldGPU} → <span style="color:#0078d4;font-weight:600;">${newGPU}</span> GPUs`;
-        html += ` · $${oldCost.toLocaleString()} → <span style="color:#0078d4;font-weight:600;">$${newCost.toLocaleString()}</span>`;
-        html += `</div>`;
-    });
-
-    html += `</div>`; // end grid
-
-    html += `<div style="margin-top:12px;font-size:12px;color:#605e5c;line-height:1.6;">`;
-    html += `<strong>Key takeaway:</strong> With a <span style="color:#8764b8;font-weight:600;">${mult}× output multiplier</span> for ${model}, `;
-    html += `the corrected method estimates <span style="color:#d13438;font-weight:600;">${grandPct}% more</span> effective token demand. `;
-    html += `This means the old calculator was <strong>underestimating</strong> GPU needs by a factor of ~${grandFactor.toFixed(2)}×. `;
-    html += `If you previously sized at ${oldResults.reduce((s,r)=>s+r.gpu_premium,0)} Premium GPUs, you likely need ~${newResults.reduce((s,r)=>s+r.gpu_premium,0)} GPUs.`;
-    html += `</div>`;
-
-    html += `</div>`; // end math-summary
+    // Grand total
+    const delta = totalWeighted - totalCurrent;
+    const pct = totalCurrent > 0 ? ((delta / totalCurrent) * 100).toFixed(1) : 0;
+    html += `<hr style="margin:20px 0;border:none;border-top:1px solid #edebe9;">`;
+    html += `<div class="math-step step-delta">`;
+    html += `<div class="math-step-title t-delta">Grand Total</div>`;
+    html += `<div class="math-code">`;
+    html += `Current: <span class="hl-g">${totalCurrent}</span> GPUs → Weighted: <span class="hl-b">${totalWeighted}</span> GPUs<br>`;
+    html += `Difference: <span class="hl-r">+${delta} GPUs (+${pct}%)</span><br>`;
+    html += `The weighted method shows the current calculator underestimates GPU needs by ~${(totalWeighted / totalCurrent).toFixed(2)}×.`;
+    html += `</div></div>`;
 
     container.innerHTML = html;
 }
 
-// ────────────────────────────────────────────────────
-// CLEAR
-// ────────────────────────────────────────────────────
+// ── Assumptions table ──
+function renderAssumptions() {
+    const tbody = document.getElementById('assumptionsBody');
+    tbody.innerHTML = '';
+    Object.entries(MODEL_CONFIG).forEach(([name, c]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${name}</strong></td>
+            <td style="color:#0078d4;font-weight:600;">${c.mult}×</td>
+            <td>${c.tpmPerGPU.toLocaleString()}</td>
+            <td>$${c.costPerDay.toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ── Clear ──
 function clearAll() {
     document.getElementById('workloadBody').innerHTML = '';
-    document.getElementById('oldResultsBody').innerHTML = '';
-    document.getElementById('newResultsBody').innerHTML = '';
-    document.getElementById('impactSection').style.display = 'none';
-    document.getElementById('resultsGrid').style.display = 'none';
-    ['totalRPM','totalTPM','totalOldTPM','totalNewTPM'].forEach(id => {
-        document.getElementById(id).textContent = '-';
-    });
-    ['P','S','A'].forEach(t => {
-        ['old','new'].forEach(m => {
-            document.getElementById(`${m}TotalGPU_${t}`).textContent = '-';
-            document.getElementById(`${m}TotalCost_${t}`).textContent = '-';
-        });
-    });
-    workloadCounter = 0;
+    document.getElementById('comparisonGrid').style.display = 'none';
+    document.getElementById('deltaBanner').classList.remove('visible');
+    document.getElementById('currentGPU').textContent = '—';
+    document.getElementById('weightedGPU').textContent = '—';
+    document.getElementById('currentBody').innerHTML = '';
+    document.getElementById('weightedBody').innerHTML = '';
+    document.getElementById('mathContent').innerHTML = '<p style="color:#605e5c;">Click <strong>Calculate</strong> to see the math.</p>';
+    document.getElementById('mathDetails').removeAttribute('open');
+    wlCounter = 0;
     addWorkload();
-    // Reset math
-    document.getElementById('mathSection').classList.remove('visible');
-    document.getElementById('mathContent').innerHTML = '<div style="padding:24px;color:#605e5c;text-align:center;">Click <strong>Calculate &amp; Compare</strong> to see the math walkthrough.</div>';
-    mathVisible = false;
-    const btn = document.getElementById('btnShowMath');
-    btn.classList.remove('active');
-    btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><line x1="17" y1="14" x2="17" y2="20"/><line x1="14" y1="17" x2="20" y2="17"/></svg> Show Math`;
 }
 
-// ────────────────────────────────────────────────────
-// SETTINGS PANEL
-// ────────────────────────────────────────────────────
-function toggleSettings() {
-    const panel = document.getElementById('settingsPanel');
-    const arrow = document.getElementById('settingsArrow');
-    panel.classList.toggle('open');
-    arrow.style.transform = panel.classList.contains('open') ? 'rotate(90deg)' : '';
-}
-
-function renderSettings() {
-    const grid = document.getElementById('settingsGrid');
-    grid.innerHTML = '';
-    Object.entries(MODEL_CONFIG).forEach(([name, cfg]) => {
-        const card = document.createElement('div');
-        card.className = 'setting-card';
-        card.innerHTML = `
-            <h4>${name}</h4>
-            <div class="setting-row">
-                <label>Output Multiplier</label>
-                <input type="number" value="${cfg.outputMultiplier}" min="1" step="1"
-                    onchange="MODEL_CONFIG['${name}'].outputMultiplier=parseFloat(this.value);recomputeAllTPM();">
-            </div>
-            <hr style="margin:6px 0;border:none;border-top:1px solid #edebe9;">
-            <div style="font-size:11px;color:#a19f9d;margin-bottom:4px;">TPM per GPU</div>
-            <div class="setting-row">
-                <label>Premium</label>
-                <input type="number" value="${cfg.tpmPerGPU.premium}" min="1"
-                    onchange="MODEL_CONFIG['${name}'].tpmPerGPU.premium=parseFloat(this.value);">
-            </div>
-            <div class="setting-row">
-                <label>Standard</label>
-                <input type="number" value="${cfg.tpmPerGPU.standard}" min="1"
-                    onchange="MODEL_CONFIG['${name}'].tpmPerGPU.standard=parseFloat(this.value);">
-            </div>
-            <div class="setting-row">
-                <label>Async</label>
-                <input type="number" value="${cfg.tpmPerGPU.async}" min="1"
-                    onchange="MODEL_CONFIG['${name}'].tpmPerGPU.async=parseFloat(this.value);">
-            </div>
-            <hr style="margin:6px 0;border:none;border-top:1px solid #edebe9;">
-            <div style="font-size:11px;color:#a19f9d;margin-bottom:4px;">Cost per GPU per Day ($)</div>
-            <div class="setting-row">
-                <label>Premium</label>
-                <input type="number" value="${cfg.costPerGPUPerDay.premium}" min="0" step="1"
-                    onchange="MODEL_CONFIG['${name}'].costPerGPUPerDay.premium=parseFloat(this.value);">
-            </div>
-            <div class="setting-row">
-                <label>Standard</label>
-                <input type="number" value="${cfg.costPerGPUPerDay.standard}" min="0" step="1"
-                    onchange="MODEL_CONFIG['${name}'].costPerGPUPerDay.standard=parseFloat(this.value);">
-            </div>
-            <div class="setting-row">
-                <label>Async</label>
-                <input type="number" value="${cfg.costPerGPUPerDay.async}" min="0" step="1"
-                    onchange="MODEL_CONFIG['${name}'].costPerGPUPerDay.async=parseFloat(this.value);">
-            </div>
-        `;
-        grid.appendChild(card);
-    });
-}
-
-// ── Boot ──
 document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
