@@ -412,14 +412,6 @@
                     <option value="async">Async</option>
                 </select>
             </div>
-            <div class="field">
-                <label>Output Weight (New calc)</label>
-                <input type="text" id="outMultDisplay" readonly style="background:#f3f2f1;color:#0078d4;font-weight:600;max-width:80px;">
-            </div>
-            <div class="field">
-                <label>TPM/GPU (A100e)</label>
-                <input type="text" id="tpmGpuDisplay" readonly style="background:#f3f2f1;max-width:110px;">
-            </div>
         </div>
 
         <!-- Workload rows -->
@@ -627,11 +619,11 @@ function init() {
     renderAssumptions();
 }
 
-// ── Model change ──
+// -- Model/tier change --
 function onModelChange() {
-    const c = getCfg();
-    document.getElementById('outMultDisplay').value = c.mult + '×';
-    document.getElementById('tpmGpuDisplay').value = c.tpmPerGPU.toLocaleString();
+    if (document.getElementById('comparisonGrid').style.display !== 'none') {
+        calculate();
+    }
 }
 
 // ── Workload rows ──
