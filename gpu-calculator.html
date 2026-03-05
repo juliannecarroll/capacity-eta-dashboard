@@ -385,21 +385,17 @@
             <div class="field">
                 <label for="modelSelect">Model</label>
                 <select id="modelSelect" onchange="onModelChange()">
-                    <option value="gpt-4o-11-20">gpt-4o-11-20</option>
-                    <option value="gpt-4o-mini-2024-07-18">gpt-4o-mini</option>
-                    <option value="4o Image Gen">4o Image Gen</option>
                     <option value="gpt-41-shortco-2025-04-14">gpt-4.1 (shortco)</option>
                     <option value="gpt-41-longco-2025-04-14">gpt-4.1 (longco)</option>
                     <option value="gpt-41-mini-04-14">gpt-4.1 mini</option>
                     <option value="gpt-41-nano-04-14">gpt-4.1 nano</option>
-                    <option value="gpt-5-chat-jj" selected>gpt-5-chat-jj</option>
                     <option value="gpt-5-chat-2025-10-03">gpt-5-chat-2025-10-03</option>
                     <option value="gpt-5-reasoning">gpt-5-reasoning</option>
                     <option value="gpt-5-mini">gpt-5-mini</option>
                     <option value="gpt-5-chat-mini">gpt-5-chat-mini</option>
                     <option value="gpt-51-chat">gpt-5.1 chat</option>
                     <option value="gpt-51-reasoning">gpt-5.1 reasoning</option>
-                    <option value="gpt-52-chat">gpt-5.2 chat</option>
+                    <option value="gpt-52-chat" selected>gpt-5.2 chat</option>
                     <option value="gpt-52-reasoning">gpt-5.2 reasoning</option>
                     <option value="o3-2025-04-16">o3</option>
                     <option value="gpt-o3-mini">o3-mini</option>
@@ -582,14 +578,10 @@
 // ══════════════════════════════════════════════════════════════
 // Keys match Kusto ModelName from GetModelOperatingPoints() exactly.
 const MODEL_CONFIG = {
-    'gpt-4o-11-20':              { mult: 4, tpm: { standard: 88625,   premium: 42625,   async: 100875  }, costPerDay: 36.50 },
-    'gpt-4o-mini-2024-07-18':   { mult: 4, tpm: { standard: 2450000, premium: 1600000, async: 3000000 }, costPerDay: 36.50 },
-    '4o Image Gen':              { mult: 1, tpm: { standard: 15761,   premium: 15761,   async: 24920   }, costPerDay: 36.50 },
     'gpt-41-shortco-2025-04-14':{ mult: 4, tpm: { standard: 98750,   premium: 45000,   async: 123714  }, costPerDay: 36.50 },
     'gpt-41-longco-2025-04-14': { mult: 4, tpm: { standard: 17972,   premium: 3456,    async: 46082   }, costPerDay: 36.50 },
     'gpt-41-mini-04-14':        { mult: 4, tpm: { standard: 666666,  premium: 48000,   async: 786666  }, costPerDay: 36.50 },
     'gpt-41-nano-04-14':        { mult: 4, tpm: { standard: 785000,  premium: 375000,  async: 1370000 }, costPerDay: 36.50 },
-    'gpt-5-chat-jj':            { mult: 8, tpm: { standard: 75000,   premium: 33600,   async: 94300   }, costPerDay: 36.50 },
     'gpt-5-chat-2025-10-03':    { mult: 8, tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
     'gpt-5-reasoning':          { mult: 8, tpm: { standard: 60277,   premium: 30000,   async: 78888   }, costPerDay: 36.50 },
     'gpt-5-mini':               { mult: 8, tpm: { standard: 287500,  premium: 69600,   async: 685800  }, costPerDay: 36.50 },
