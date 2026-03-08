@@ -1321,14 +1321,20 @@ canvas { max-height: 350px; }
     </div>
 </div>
 
+<div class="table-section">
+    <h3>GPU by Model Family</h3>
+    <table>
+        <thead>
+            <tr><th>Category</th><th>Model Family</th><th style="text-align:right;">Total GPU</th></tr>
+        </thead>
+        <tbody><tr><td><span class="cat-badge cat-big6">Big 6</span></td><td>GPT-4.1</td><td class="num gpu-val">6,408</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>deepresearch</td><td class="num gpu-val">2,188</td></tr><tr><td><span class="cat-badge cat-big6">Big 6</span></td><td>GPT-5-reasoning</td><td class="num gpu-val">2,036</td></tr><tr><td><span class="cat-badge cat-big6">Big 6</span></td><td>GPT-5-chat</td><td class="num gpu-val">1,737</td></tr><tr><td><span class="cat-badge cat-big6">Big 6</span></td><td>GPT-4.1-mini</td><td class="num gpu-val">1,351</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>sonicberry</td><td class="num gpu-val">758</td></tr><tr><td><span class="cat-badge cat-ft">FT</span></td><td>FT (lu-ftv5-slot-a-ft)</td><td class="num gpu-val">384</td></tr><tr><td><span class="cat-badge cat-big6">Big 6</span></td><td>Text-embedding</td><td class="num gpu-val">309</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>anthropic-claude-opus-4-6</td><td class="num gpu-val">306</td></tr><tr><td><span class="cat-badge cat-newmodels">New Models</span></td><td>scout-5-2</td><td class="num gpu-val">288</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>Ranker 2048</td><td class="num gpu-val">202</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>CompoundVortexCombiner</td><td class="num gpu-val">168</td></tr><tr><td><span class="cat-badge cat-newmodels">New Models</span></td><td>scout-4-2</td><td class="num gpu-val">144</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>onnx</td><td class="num gpu-val">24</td></tr><tr><td><span class="cat-badge cat-ft">FT</span></td><td>FT (workberry)</td><td class="num gpu-val">20</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>anthropic-claude-sonnet-4-5</td><td class="num gpu-val">4</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>anthropic-claude-sonnet-4-6</td><td class="num gpu-val">2</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>gpt-image-1-5</td><td class="num gpu-val">1</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>Custom Neural Network</td><td class="num gpu-val">1</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>qwen-3-06b</td><td class="num gpu-val">1</td></tr><tr><td><span class="cat-badge cat-other">Other</span></td><td>anthropic-claude-opus-4-5</td><td class="num gpu-val">1</td></tr></tbody>
+    </table>
+</div>
+
 <div class="charts">
     <div class="chart-box">
         <h3>GPU by Category</h3>
         <canvas id="chartCatGpu"></canvas>
-    </div>
-    <div class="chart-box">
-        <h3>GPU by Model Family (colored by category)</h3>
-        <canvas id="chartFamilyGpu"></canvas>
     </div>
     <div class="chart-box">
         <h3>Big 6 Families by Status</h3>
@@ -1836,18 +1842,7 @@ function initTab2Charts() {
         }
     });
 
-    new Chart(document.getElementById('chartFamilyGpu'), {
-        type: 'bar',
-        data: {
-            labels: T2.familyGpu.labels,
-            datasets: [{ label: 'GPU', data: T2.familyGpu.data, backgroundColor: T2.familyGpu.colors, borderRadius: 4 }]
-        },
-        options: {
-            indexAxis: 'y', responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { x: { ticks: { callback: v => v.toLocaleString() } } }
-        }
-    });
+
 
     const b6 = T2.big6Status;
     new Chart(document.getElementById('chartBig6Status'), {
