@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizChat Work - Capacity Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; }
+.header { text-align: center; margin-bottom: 20px; }
+.header h1 { font-size: 1.8rem; color: #f8fafc; margin-bottom: 5px; }
+.header p { color: #94a3b8; font-size: 0.9rem; }
+
+/* Tabs */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 24px; background: #1e293b; border-radius: 12px; padding: 4px; border: 1px solid #334155; }
+.tab-btn { flex: 1; padding: 12px 20px; border: none; background: transparent; color: #94a3b8; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
+.tab-btn:hover { color: #e2e8f0; background: #334155; }
+.tab-btn.active { background: #3b82f6; color: white; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 30px; }
+.card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+.card .label { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+.card .value { font-size: 2rem; font-weight: 700; color: #f8fafc; margin-top: 4px; }
+.card .sub { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+
+.section-title { font-size: 1.2rem; color: #f8fafc; margin: 30px 0 15px 0; padding-bottom: 8px; border-bottom: 1px solid #334155; }
+
+.phase-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 16px; margin-bottom: 30px; }
+.phase-card { background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; }
+.phase-header { display: flex; justify-content: space-between; align-items: center; }
+.phase-name { font-size: 1rem; font-weight: 600; color: #f8fafc; }
+.phase-gpu { font-size: 1.3rem; font-weight: 700; color: #fbbf24; }
+.phase-meta { font-size: 0.8rem; color: #64748b; margin-top: 4px; }
+
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.chart-box { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+.chart-box h3 { font-size: 1rem; color: #cbd5e1; margin-bottom: 15px; }
+
+.table-section { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; margin-bottom: 30px; overflow-x: auto; }
+.table-section h3 { font-size: 1rem; color: #cbd5e1; margin-bottom: 15px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { background: #0f172a; color: #94a3b8; padding: 10px 12px; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; position: sticky; top: 0; z-index: 1; }
+td { padding: 7px 10px; border-bottom: 1px solid #253348; color: #cbd5e1; }
+tr:hover td { background: #334155; }
+tr.phase-divider td { border-top: 2px solid #475569; }
+tr.cat-divider td { border-top: 2px solid #475569; }
+tr.group-header td { background: #0f172a; border-top: 2px solid #475569; }
+.group-label { font-weight: 700; color: #f8fafc; font-size: 0.85rem; padding: 10px 12px !important; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.gpu-val { color: #fbbf24; font-weight: 600; }
+
+.status-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
+.status-promotedtocapcouncil { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.status-inbuildout { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.status-buildoutcompleted { background: rgba(16,185,129,0.15); color: #10b981; }
+
+.cat-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
+.cat-big6 { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.cat-ft { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.cat-other { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+canvas { max-height: 350px; }
+.scroll-table { max-height: 600px; overflow-y: auto; }
+.note { background: #1e293b; border: 1px solid #f59e0b33; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.85rem; color: #fbbf24; }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>BizChat Work &mdash; Capacity Dashboard</h1>
+    <p>Product Group: BizChatWork &bull; Feature Phases: All except GA-WW &bull; Statuses: Promoted to Cap Council, In Buildout, Buildout Completed</p>
+    <p style="margin-top:4px; color:#64748b;">Generated: 2026-03-07 &bull; Source: polymer.centralus / polymerdb (LlmInferenceCapacityRequests + PolymerCapacityRequests)</p>
+</div>
+
+<div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('tab1')">Feature Phase Breakdown</button>
+    <button class="tab-btn" onclick="switchTab('tab2')">New Model Experimentation</button>
+</div>
+
+<!-- ==================== TAB 1 ==================== -->
+<div id="tab1" class="tab-content active">
+
+<div class="note">
+    Note: "Promoted to Cap Council" tickets show TotalGPU (requested GPU count from the ticket) since TotalRequestedGpuCount is not populated until buildout allocation.
+</div>
+
+<div class="cards">
+    <div class="card">
+        <div class="label">Total GPU Requested</div>
+        <div class="value">4,585</div>
+    </div>
+    <div class="card">
+        <div class="label">Total GPU Approved</div>
+        <div class="value">2,696</div>
+        <div class="sub">59% of requested</div>
+    </div>
+    <div class="card">
+        <div class="label">Promoted to Cap Council</div>
+        <div class="value" style="color:#f59e0b">1,889</div>
+        <div class="sub">GPUs</div>
+    </div>
+    <div class="card">
+        <div class="label">In Buildout</div>
+        <div class="value" style="color:#3b82f6">199</div>
+        <div class="sub">GPUs</div>
+    </div>
+    <div class="card">
+        <div class="label">Buildout Completed</div>
+        <div class="value" style="color:#10b981">2,497</div>
+        <div class="sub">GPUs</div>
+    </div>
+</div>
+
+<h2 class="section-title">Feature Phase Breakdown</h2>
+<div class="phase-cards">
+    <div class="phase-card" style="border-left: 4px solid #f97316;">
+        <div class="phase-header">
+            <span class="phase-name">Internal Eval (SDF)</span>
+            <span class="phase-gpu">2,660 GPUs</span>
+        </div>
+        <div class="phase-meta">Buildout Completed: 1,409 | Promoted to Cap Council: 1,251</div>
+        <div class="phase-meta" style="color:#94a3b8;">Top: gpt-41-shortco-2025-04-14 (1,200), gpt-52-reasoning (638), gpt-52-chat (437)</div>
+    </div>
+    <div class="phase-card" style="border-left: 4px solid #06b6d4;">
+        <div class="phase-header">
+            <span class="phase-name">Internal Eval (MSIT)</span>
+            <span class="phase-gpu">1,248 GPUs</span>
+        </div>
+        <div class="phase-meta">Buildout Completed: 1,025 | In Buildout: 66 | Promoted to Cap Council: 157</div>
+        <div class="phase-meta" style="color:#94a3b8;">Top: gpt-52-reasoning (315), text-embedding-3-small (309), anthropic-claude-opus-4-6 (259)</div>
+    </div>
+    <div class="phase-card" style="border-left: 4px solid #8b5cf6;">
+        <div class="phase-header">
+            <span class="phase-name">Development</span>
+            <span class="phase-gpu">677 GPUs</span>
+        </div>
+        <div class="phase-meta">Buildout Completed: 63 | In Buildout: 133 | Promoted to Cap Council: 481</div>
+        <div class="phase-meta" style="color:#94a3b8;">Top: gpt-41-shortco-2025-04-14 (373), deepresearch (70), gpt-5-mini (69)</div>
+    </div>
+</div>
+
+<div class="charts">
+    <div class="chart-box">
+        <h3>GPU by Feature Phase</h3>
+        <canvas id="chartPhase"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>GPU by Feature Phase &amp; Status (Stacked)</h3>
+        <canvas id="chartPhaseStatus"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>GPU by Status</h3>
+        <canvas id="chartStatus"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>GPU by Model (Top 15)</h3>
+        <canvas id="chartModel"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>GPU by Model &amp; Status (Stacked)</h3>
+        <canvas id="chartModelStatus"></canvas>
+    </div>
+</div>
+
+<div class="table-section">
+    <h3>Summary &mdash; Grouped by Feature Phase, Model, Status (sorted by GPU desc)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Feature Phase</th>
+                <th>Model</th>
+                <th>Status</th>
+                <th>GPU (Total)</th>
+                <th>GPU Approved</th>
+            </tr>
+        </thead>
+        <tbody>
+    <tr class=" phase-divider">
+        <td>Internal Eval (SDF)</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1,200</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (SDF)</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">638</td>
+        <td class="num">638</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (SDF)</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">437</td>
+        <td class="num">437</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Development</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">373</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (MSIT)</td>
+        <td>text-embedding-3-small</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">308</td>
+        <td class="num">308</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (MSIT)</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">303</td>
+        <td class="num">303</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (MSIT)</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">259</td>
+        <td class="num">259</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (SDF)</td>
+        <td>scout-4-2</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">144</td>
+        <td class="num">144</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (SDF)</td>
+        <td>scout-5-2</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">144</td>
+        <td class="num">144</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (MSIT)</td>
+        <td>scout-5-2</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">144</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (MSIT)</td>
+        <td>gpt-41-nano-04-14</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">71</td>
+        <td class="num">71</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (MSIT)</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">70</td>
+        <td class="num">70</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Development</td>
+        <td>deepresearch</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">70</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (MSIT)</td>
+        <td>gpt-5-nano</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">66</td>
+        <td class="num">66</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Development</td>
+        <td>gpt-5-mini</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">66</td>
+        <td class="num">66</td>
+    </tr>
+    <tr class="">
+        <td>Development</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">50</td>
+        <td class="num">50</td>
+    </tr>
+    <tr class="">
+        <td>Development</td>
+        <td>gpt-41-shortco-2025-04-14-responses</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">50</td>
+        <td class="num">50</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (SDF)</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">35</td>
+        <td class="num">35</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (SDF)</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">22</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (SDF)</td>
+        <td>prod-workberry-slot-a-ft</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">20</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Development</td>
+        <td>gpt-5-nano</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">16</td>
+        <td class="num">16</td>
+    </tr>
+    <tr class="">
+        <td>Development</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">16</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class="">
+        <td>Development</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">16</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (MSIT)</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">12</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Development</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">11</td>
+        <td class="num">11</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (MSIT)</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">10</td>
+        <td class="num">10</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (SDF)</td>
+        <td>gpt-5-chat-mini</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">8</td>
+        <td class="num">8</td>
+    </tr>
+    <tr class="">
+        <td>Internal Eval (SDF)</td>
+        <td>onnx</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">8</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (MSIT)</td>
+        <td>sonicberry</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">4</td>
+        <td class="num">4</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (SDF)</td>
+        <td>sonicberry</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">3</td>
+        <td class="num">3</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Development</td>
+        <td>gpt-5-mini</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">3</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class="">
+        <td>Development</td>
+        <td>Custom Neural Network</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+    </tr>
+    <tr class="">
+        <td>Development</td>
+        <td>gpt-image-1-5</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+    </tr>
+    <tr class="">
+        <td>Development</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (SDF)</td>
+        <td>qwen-3-06b</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Development</td>
+        <td>anthropic-claude-opus-4-5</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Internal Eval (MSIT)</td>
+        <td>text-embedding-3-small</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class=" phase-divider">
+        <td>Development</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+    </tr>
+    <tr class="">
+        <td>Development</td>
+        <td>anthropic-claude-sonnet-4-6</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+    </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="table-section">
+    <h3>All Tickets Detail (sorted by GPU desc)</h3>
+    <div class="scroll-table">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Feature Phase</th>
+                <th>Scenario Name</th>
+                <th>Feature Name</th>
+                <th>Model</th>
+                <th>Status</th>
+                <th>GPU (Total)</th>
+                <th>GPU Approved</th>
+                <th>Demand Type</th>
+                <th>Ready Date</th>
+            </tr>
+        </thead>
+        <tbody>
+    <tr class="group-header">
+        <td colspan="10" class="group-label">Internal Eval (SDF) &mdash; 2,660 GPUs</td>
+    </tr>
+    <tr>
+        <td title="1b9fc9fb-8f47-4207-ab08-55480cbe568e">1b9fc9fb-8f4...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>BizChat Experimentation and Metrics</td>
+        <td>[ASYNC, ID8] Covering Current Overuse of GPT-4.1</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1,200</td>
+        <td class="num">0</td>
+        <td>Other</td>
+        <td>2025-10-10</td>
+    </tr>
+    <tr>
+        <td title="449f308f-443a-43d3-9cfc-4ac8a66f9268">449f308f-443...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Declarative Agents Paid</td>
+        <td>52 reasoning da paid dev sdf</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">477</td>
+        <td class="num">477</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="58c651db-1e8b-47cb-9f13-9cb03b6804ff">58c651db-1e8...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Declarative Agents Paid</td>
+        <td>52 chat sdf dev paid da</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">383</td>
+        <td class="num">383</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="fb684eef-3b7d-40ce-b04a-046470eb86e3">fb684eef-3b7...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Enterprise Sydney</td>
+        <td>[PEAK, ID183] Scout 4.2 model for evaluating Workberry quality</td>
+        <td>scout-4-2</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">144</td>
+        <td class="num">144</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2025-12-22</td>
+    </tr>
+    <tr>
+        <td title="a64ce11a-da44-46b6-884d-adf9523fae81">a64ce11a-da4...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Enterprise Sydney</td>
+        <td>[PEAK, ID184] Scout 5.2model for evaluating Workberry quality</td>
+        <td>scout-5-2</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">144</td>
+        <td class="num">144</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2025-12-22</td>
+    </tr>
+    <tr>
+        <td title="7ae17b88-1a83-4999-9193-47b5ba8c7dac">7ae17b88-1a8...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Declarative Agents Starter</td>
+        <td>5.2 reasoning da starter sdf</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">74</td>
+        <td class="num">74</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="b47e37e2-1852-41d0-9f04-a550c352aaee">b47e37e2-185...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Declarative Agents Paid</td>
+        <td>5.2 reasoning DA paid SDF</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">42</td>
+        <td class="num">42</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="c093175d-623e-4b80-ace5-049cb5212dc3">c093175d-623...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Declarative Agents Paid</td>
+        <td>Researcher-Critique</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">35</td>
+        <td class="num">35</td>
+        <td>Other</td>
+        <td>2026-02-18</td>
+    </tr>
+    <tr>
+        <td title="65b09187-75e7-4006-b623-f50bf212df4a">65b09187-75e...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Declarative Agents Paid</td>
+        <td>52 chat Paid SDF</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">26</td>
+        <td class="num">26</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="689c2c5d-aedb-48c4-b22f-1b85dfe72a71">689c2c5d-aed...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Copilot Notebooks</td>
+        <td>5.2 reasoning DA notebook SDF</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">23</td>
+        <td class="num">23</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="1918cfe3-738a-4f45-9914-cd6fa8abc920">1918cfe3-738...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>WorkMemory</td>
+        <td>work memory</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">22</td>
+        <td class="num">22</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-26</td>
+    </tr>
+    <tr>
+        <td title="562aa2d1-62e1-4352-9f84-ed43cb822552">562aa2d1-62e...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Bizchat RLHF</td>
+        <td>WorkBerry FT</td>
+        <td>prod-workberry-slot-a-ft</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">20</td>
+        <td class="num">0</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-02-16</td>
+    </tr>
+    <tr>
+        <td title="c722575a-251c-487b-bf9f-6b72377c43cb">c722575a-251...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>SLM WPR</td>
+        <td>SLM WPR USERP (Evaluation)</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">18</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-23</td>
+    </tr>
+    <tr>
+        <td title="0f81b87f-4cfe-48be-89f7-92de45b5f14b">0f81b87f-4cf...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Copilot Notebooks</td>
+        <td>52 chat DA notebook SDF</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">15</td>
+        <td class="num">15</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="504257af-c01f-42e0-afba-c1bc877506ed">504257af-c01...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Declarative Agents Starter</td>
+        <td>5.2 chat DA starter SDF</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">13</td>
+        <td class="num">13</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="72c40429-dd0c-4b99-a1d4-be43b08c5b53">72c40429-dd0...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>EnterpriseSydney</td>
+        <td>Summarizer</td>
+        <td>gpt-5-chat-mini</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">8</td>
+        <td class="num">8</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-03-02</td>
+    </tr>
+    <tr>
+        <td title="ce7ee7b4-94b3-4847-8917-6f8743265db6">ce7ee7b4-94b...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Atlas</td>
+        <td>AtlasV2</td>
+        <td>onnx</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">8</td>
+        <td class="num">0</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-02-02</td>
+    </tr>
+    <tr>
+        <td title="2aaa53e5-069f-4341-badb-0ed7a6336d91">2aaa53e5-069...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>SLM WPR</td>
+        <td>SLM WPR USERP</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">2</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-23</td>
+    </tr>
+    <tr>
+        <td title="4f369a34-34ea-414e-ba3d-7d9b20d69d2b">4f369a34-34e...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>ScheduledPromptSuggestionChipPrecision</td>
+        <td>ScheduledPromptSuggestionChipPrecision</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">2</td>
+        <td class="num">0</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-03-20</td>
+    </tr>
+    <tr>
+        <td title="787895fd-5679-473d-9413-b5ebe67ec3e9">787895fd-567...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Copilot Notebooks</td>
+        <td>sonicberry DA notebook</td>
+        <td>sonicberry</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="14742c05-ee78-4caf-a1b7-b8ca84c68d9a">14742c05-ee7...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Declarative Agents Paid</td>
+        <td>sonicberry DA paid SDF</td>
+        <td>sonicberry</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="37b0e1cc-450e-4a50-8f2a-36ac34989764">37b0e1cc-450...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Declarative Agents Starter</td>
+        <td>sonicberry DA Starter sdf</td>
+        <td>sonicberry</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="ce3a9fda-a453-4901-a0a0-9020fddbec9f">ce3a9fda-a45...</td>
+        <td>Internal Eval (SDF)</td>
+        <td>Mnemis Memory</td>
+        <td>[PEAK, ID56] Personalized work notes retrieval for WorkBerry hero queries</td>
+        <td>qwen-3-06b</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2025-11-10</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="10" class="group-label">Internal Eval (MSIT) &mdash; 1,248 GPUs</td>
+    </tr>
+    <tr>
+        <td title="d83f88ca-f09c-4024-8851-805a322c1b38">d83f88ca-f09...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agent contextual chunking and embeddings</td>
+        <td>[PEAK, ID194] Vectorization Rollout FactSim to MSIT</td>
+        <td>text-embedding-3-small</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">306</td>
+        <td class="num">306</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-20</td>
+    </tr>
+    <tr>
+        <td title="d9212d6a-a672-419c-bd41-208e8575f8fe">d9212d6a-a67...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agents Paid</td>
+        <td>Researcher-Critique</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">157</td>
+        <td class="num">157</td>
+        <td>Other</td>
+        <td>2026-02-09</td>
+    </tr>
+    <tr>
+        <td title="a62d93d8-5fa5-4494-a4a5-df21ea59502e">a62d93d8-5fa...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agents Paid</td>
+        <td>Researcher-Critique (NAM + APAC)</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">157</td>
+        <td class="num">157</td>
+        <td>Other</td>
+        <td>2026-02-18</td>
+    </tr>
+    <tr>
+        <td title="34520cbe-fe68-4e0b-abbe-cb55748e8cbe">34520cbe-fe6...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Enterprise Sydney</td>
+        <td>[PEAK, ID182] Scout model for Workberry (SDF/MSIT)</td>
+        <td>scout-5-2</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">144</td>
+        <td class="num">0</td>
+        <td>NewScenarioFlight</td>
+        <td>2025-12-18</td>
+    </tr>
+    <tr>
+        <td title="4c770ec4-8b35-47b7-9c58-c1701745da00">4c770ec4-8b3...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agents Paid</td>
+        <td>Researcher-Critique (EU only)</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">102</td>
+        <td class="num">102</td>
+        <td>Other</td>
+        <td>2026-02-18</td>
+    </tr>
+    <tr>
+        <td title="e880361f-5371-4170-b63e-e56bd12fa1db">e880361f-537...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agents Paid</td>
+        <td>5.2 reasoning da paid msit</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">88</td>
+        <td class="num">88</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="5f8f7ed9-9246-4b6b-9e1d-bf57dc93dd4c">5f8f7ed9-924...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>BizChat Proactive - Prompt Gen</td>
+        <td>FactSim</td>
+        <td>gpt-5-nano</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">66</td>
+        <td class="num">66</td>
+        <td>ModelMigration</td>
+        <td>2026-02-12</td>
+    </tr>
+    <tr>
+        <td title="16f1d518-743e-4509-a8ef-3c8b529cfee7">16f1d518-743...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>BizChat Proactive - Prompt Gen</td>
+        <td>FactSim</td>
+        <td>gpt-41-nano-04-14</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">66</td>
+        <td class="num">66</td>
+        <td>ModelMigration</td>
+        <td>2026-02-10</td>
+    </tr>
+    <tr>
+        <td title="5d3f5997-c5db-4644-a465-ded446a839fa">5d3f5997-c5d...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agents Paid</td>
+        <td>5.2 chat da paid msit</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">53</td>
+        <td class="num">53</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="830e2065-55d5-4aa0-9554-4c2dc95ac9e2">830e2065-55d...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agents Starter</td>
+        <td>5.2reasoning da starter msit</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">46</td>
+        <td class="num">46</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="fa12c4fa-5740-4fcb-9cf6-a2c78c32788a">fa12c4fa-574...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agents Starter</td>
+        <td>5.2 chat DA starter MSIT</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">12</td>
+        <td class="num">12</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="6b700b80-f139-4406-b837-89052d6bea9e">6b700b80-f13...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Copilot Notebooks</td>
+        <td>5.2 reasoning notebook msit</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">12</td>
+        <td class="num">12</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="4072805a-3d26-4f05-b698-3ed0a8fbaae2">4072805a-3d2...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>3S_Query_formulation_and_CIQ</td>
+        <td>Prompt templatization</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">12</td>
+        <td class="num">0</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-02-15</td>
+    </tr>
+    <tr>
+        <td title="1b078bdc-7206-4060-be78-4e62e7f3f8b7">1b078bdc-720...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>LU For FactSim</td>
+        <td>[PEAK, ID192] LU to rollout FactSim for Files (MSIT)</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">10</td>
+        <td class="num">10</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-20</td>
+    </tr>
+    <tr>
+        <td title="1d90afe4-19c3-4351-9fd6-b4142eba9399">1d90afe4-19c...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Copilot Notebooks</td>
+        <td>5.2chat notebook msit</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">5</td>
+        <td class="num">5</td>
+        <td>ModelMigration</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="f7e96ad7-80f4-45f8-8f31-6d724454a0ae">f7e96ad7-80f...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Suggestion Chip</td>
+        <td>[PEAK, ID185] Turn N Suggestion Chips - Improve Agent Recommendation precision from 30% to 70%</td>
+        <td>gpt-41-nano-04-14</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">5</td>
+        <td class="num">5</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-06</td>
+    </tr>
+    <tr>
+        <td title="27c3592b-0110-4edb-ac27-3bd192f162f4">27c3592b-011...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agents Paid</td>
+        <td>sonicberry da paid msit</td>
+        <td>sonicberry</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">2</td>
+        <td class="num">2</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="92542307-d947-41ed-98e5-febd92103232">92542307-d94...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agent Embedding</td>
+        <td>[PEAK, ID193] QA to FactSim for Files (MSIT)</td>
+        <td>text-embedding-3-small</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">2</td>
+        <td class="num">2</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-20</td>
+    </tr>
+    <tr>
+        <td title="f388d279-81f7-4fdd-a50b-c4308f59687f">f388d279-81f...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Copilot Notebooks</td>
+        <td>sonicberry da notebook msit</td>
+        <td>sonicberry</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="ab4a8a90-7e91-444a-9a23-751f9c83eb26">ab4a8a90-7e9...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Declarative Agents Starter</td>
+        <td>sonicberry da starter msit</td>
+        <td>sonicberry</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-01-22</td>
+    </tr>
+    <tr>
+        <td title="1f6e0bf3-74ab-4bad-ae88-af357bfe053c">1f6e0bf3-74a...</td>
+        <td>Internal Eval (MSIT)</td>
+        <td>Suggestion Chip</td>
+        <td>Capability retrieval in Suggestion Chips</td>
+        <td>text-embedding-3-small</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+        <td>NewScenarioFlight</td>
+        <td>2026-02-19</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="10" class="group-label">Development &mdash; 677 GPUs</td>
+    </tr>
+    <tr>
+        <td title="4606be7e-a359-402d-a69e-02952fe4f542">4606be7e-a35...</td>
+        <td>Development</td>
+        <td>Searchrelevance</td>
+        <td>LLM Labelling and data generation for Files, Email, and Connectors</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">197</td>
+        <td class="num">0</td>
+        <td>ModelMigration</td>
+        <td>2026-03-06</td>
+    </tr>
+    <tr>
+        <td title="140ac055-79bb-479e-ac67-234e3b81ffd1">140ac055-79b...</td>
+        <td>Development</td>
+        <td>WorkIQ Eval</td>
+        <td>WorkIQ eval</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">100</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-02</td>
+    </tr>
+    <tr>
+        <td title="b00eb85c-c40f-4e75-ac8f-c44dbe9ec105">b00eb85c-c40...</td>
+        <td>Development</td>
+        <td>AI Verticals Recipes</td>
+        <td>AI Verticals Experiments</td>
+        <td>deepresearch</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">70</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-23</td>
+    </tr>
+    <tr>
+        <td title="6f2e7162-de0b-4343-b159-0db09c2985d3">6f2e7162-de0...</td>
+        <td>Development</td>
+        <td>Eval V2</td>
+        <td>Eval V2</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">50</td>
+        <td class="num">50</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-11</td>
+    </tr>
+    <tr>
+        <td title="666a0f61-f15d-4e0f-b878-2e33635ea348">666a0f61-f15...</td>
+        <td>Development</td>
+        <td>Teams Message Search Relevance</td>
+        <td>LLM Labelling for Email, Teams, Calendar</td>
+        <td>gpt-41-shortco-2025-04-14-responses</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">50</td>
+        <td class="num">50</td>
+        <td>ModelMigration</td>
+        <td>2026-02-12</td>
+    </tr>
+    <tr>
+        <td title="f1156722-054f-4be0-9681-ce87d63c5887">f1156722-054...</td>
+        <td>Development</td>
+        <td>Power BI</td>
+        <td>Powerbi</td>
+        <td>gpt-5-mini</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">50</td>
+        <td class="num">50</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-27</td>
+    </tr>
+    <tr>
+        <td title="1cc2ad9e-3079-4603-a9fc-c4669ccefd0c">1cc2ad9e-307...</td>
+        <td>Development</td>
+        <td>SearchRelevance2</td>
+        <td>LLM Labelling and Data Generation</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">29</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-09</td>
+    </tr>
+    <tr>
+        <td title="eb31de7b-fd01-4e96-8693-ef2f145ca616">eb31de7b-fd0...</td>
+        <td>Development</td>
+        <td>Enterprise Fine-Tuning</td>
+        <td>LLM Labelling and Data Generation</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">29</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-09</td>
+    </tr>
+    <tr>
+        <td title="fd2a15a8-4bb9-48c3-a5cd-16c88660e7fc">fd2a15a8-4bb...</td>
+        <td>Development</td>
+        <td>EnterpriseSydney</td>
+        <td>WorkBerry</td>
+        <td>gpt-5-nano</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">16</td>
+        <td class="num">16</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-12</td>
+    </tr>
+    <tr>
+        <td title="e6174497-6daa-489f-8ebd-449f1353ad99">e6174497-6da...</td>
+        <td>Development</td>
+        <td>EnterpriseSydney</td>
+        <td>WorkBerry</td>
+        <td>gpt-5-mini</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">16</td>
+        <td class="num">16</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-12</td>
+    </tr>
+    <tr>
+        <td title="54a5988a-d6a7-4a21-b062-af6760111f51">54a5988a-d6a...</td>
+        <td>Development</td>
+        <td>AI Verticals Recipes</td>
+        <td>AI Verticals Experiments</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">16</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-23</td>
+    </tr>
+    <tr>
+        <td title="3f5971cc-4fd7-4752-8fcb-90757804a983">3f5971cc-4fd...</td>
+        <td>Development</td>
+        <td>Researcher Studio </td>
+        <td>Bizchat Proactive Horizons</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">10</td>
+        <td class="num">10</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-11</td>
+    </tr>
+    <tr>
+        <td title="c015ffab-e722-4d02-ac2f-47a6c5906e2e">c015ffab-e72...</td>
+        <td>Development</td>
+        <td>Power BI</td>
+        <td>Powerbi</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">10</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-03-06</td>
+    </tr>
+    <tr>
+        <td title="e999c3a8-3a4b-4820-8589-33792711aa62">e999c3a8-3a4...</td>
+        <td>Development</td>
+        <td>Teams Message Search Relevance</td>
+        <td>LLM Labelling</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">10</td>
+        <td class="num">0</td>
+        <td>ModelMigration</td>
+        <td>2026-03-04</td>
+    </tr>
+    <tr>
+        <td title="2ac61350-ee21-4648-8bbb-3fdfe2d5d82b">2ac61350-ee2...</td>
+        <td>Development</td>
+        <td>Mimir for Teams Message</td>
+        <td>Teams Conversation Relevance</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">8</td>
+        <td class="num">0</td>
+        <td>ModelMigration</td>
+        <td>2026-03-04</td>
+    </tr>
+    <tr>
+        <td title="31cb1a1f-b588-423a-a114-b47ca456f66b">31cb1a1f-b58...</td>
+        <td>Development</td>
+        <td>AI Verticals Recipes</td>
+        <td>AI Verticals Experiments</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">6</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-23</td>
+    </tr>
+    <tr>
+        <td title="e87f308c-2e6a-4d37-a4b5-da3c04a7e243">e87f308c-2e6...</td>
+        <td>Development</td>
+        <td>Generative Prompts</td>
+        <td>3S QF relevance experimentation capacity.</td>
+        <td>gpt-5-mini</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">3</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-15</td>
+    </tr>
+    <tr>
+        <td title="af91a1d6-6f41-43c5-8b1f-32969eb88c41">af91a1d6-6f4...</td>
+        <td>Development</td>
+        <td>Ranker Modernization</td>
+        <td>neuralrankergpu</td>
+        <td>Custom Neural Network</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-15</td>
+    </tr>
+    <tr>
+        <td title="b1e589c0-64ce-4044-8831-69d1a1704058">b1e589c0-64c...</td>
+        <td>Development</td>
+        <td>People in Copilot experimentation</td>
+        <td>People in Copilot - People Tool SAT rate analysis</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+        <td>Other</td>
+        <td>2026-02-15</td>
+    </tr>
+    <tr>
+        <td title="062467d5-b8bd-4805-a920-58063d7f5a03">062467d5-b8b...</td>
+        <td>Development</td>
+        <td>MSAI Data Generation</td>
+        <td>Synthetic enterprise data generation for fine-tuning</td>
+        <td>gpt-image-1-5</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+        <td>Other</td>
+        <td>2026-02-19</td>
+    </tr>
+    <tr>
+        <td title="15d191bd-d894-4f7e-ac2e-ef452785edc2">15d191bd-d89...</td>
+        <td>Development</td>
+        <td>AI Verticals Recipes</td>
+        <td>AI Verticals Experiments</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">1</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-23</td>
+    </tr>
+    <tr>
+        <td title="5f2b7398-8fab-4327-863f-dcbeb301c835">5f2b7398-8fa...</td>
+        <td>Development</td>
+        <td>Declarative Agents Paid</td>
+        <td>Researcher Deep Work</td>
+        <td>anthropic-claude-opus-4-5</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-02-25</td>
+    </tr>
+    <tr>
+        <td title="fcf18164-3a36-4ebe-9847-d5f530cf3b90">fcf18164-3a3...</td>
+        <td>Development</td>
+        <td>Declarative Agents Paid</td>
+        <td>Researcher - Claude</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-03-09</td>
+    </tr>
+    <tr>
+        <td title="7885261f-14ba-4d0a-9f96-e4014f021c30">7885261f-14b...</td>
+        <td>Development</td>
+        <td>Declarative Agents Paid</td>
+        <td>Researcher - Claude</td>
+        <td>anthropic-claude-sonnet-4-6</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num gpu-val">1</td>
+        <td class="num">0</td>
+        <td>NewScenarioDevelopment</td>
+        <td>2026-03-09</td>
+    </tr>
+        </tbody>
+    </table>
+    </div>
+</div>
+
+</div><!-- end tab1 -->
+
+<!-- ==================== TAB 2 ==================== -->
+<div id="tab2" class="tab-content">
+
+<div class="note">
+    Model categories: <strong>Big 6</strong> = GPT-4o, GPT-4.1, GPT-4.1-mini, GPT-5-chat, GPT-5-reasoning, Text-embedding &bull;
+    <strong>FT</strong> = Fine-tuned models (contain "ft" in name) &bull;
+    <strong>Other</strong> = All remaining models (Anthropic, Scout, DeepResearch, etc.)
+</div>
+
+<div class="cards">
+    <div class="card">
+        <div class="label">Big 6 GPUs</div>
+        <div class="value" style="color:#3b82f6">3,737</div>
+        <div class="sub">45 tickets</div>
+    </div>
+    <div class="card">
+        <div class="label">FT GPUs</div>
+        <div class="value" style="color:#f59e0b">20</div>
+        <div class="sub">1 tickets</div>
+    </div>
+    <div class="card">
+        <div class="label">Other GPUs</div>
+        <div class="value" style="color:#ef4444">828</div>
+        <div class="sub">22 tickets</div>
+    </div>
+    <div class="card">
+        <div class="label">Total GPUs</div>
+        <div class="value">4,585</div>
+        <div class="sub">All categories</div>
+    </div>
+</div>
+
+<div class="charts">
+    <div class="chart-box">
+        <h3>GPU by Category</h3>
+        <canvas id="chartCatGpu"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>Tickets by Category</h3>
+        <canvas id="chartCatTickets"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>GPU by Model Family (colored by category)</h3>
+        <canvas id="chartFamilyGpu"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>Big 6 Families by Status</h3>
+        <canvas id="chartBig6Status"></canvas>
+    </div>
+</div>
+
+<div class="table-section">
+    <h3>All Models &mdash; by Category, Family, Model, Status (sorted by GPU desc within category)</h3>
+    <div class="scroll-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Family</th>
+                <th>Model</th>
+                <th>Status</th>
+                <th>Tickets</th>
+                <th>GPUs</th>
+            </tr>
+        </thead>
+        <tbody>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-41-shortco-2025-04-14 &mdash; 1,573 GPUs &bull; 7 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (GPT-4.1)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-4.1</td>
+        <td>gpt-41-shortco-2025-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">7</td>
+        <td class="num gpu-val">1,573</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-52-reasoning &mdash; 969 GPUs &bull; 12 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (GPT-5-reasoning)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-5-reasoning</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">9</td>
+        <td class="num gpu-val">941</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-5-reasoning</td>
+        <td>gpt-52-reasoning</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">3</td>
+        <td class="num gpu-val">28</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-52-chat &mdash; 523 GPUs &bull; 8 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (GPT-5-chat)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-5-chat</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">7</td>
+        <td class="num gpu-val">507</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-5-chat</td>
+        <td>gpt-52-chat</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">16</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">text-embedding-3-small &mdash; 309 GPUs &bull; 3 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (Text-embedding)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>Text-embedding</td>
+        <td>text-embedding-3-small</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">2</td>
+        <td class="num gpu-val">308</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>Text-embedding</td>
+        <td>text-embedding-3-small</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">1</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">anthropic-claude-opus-4-6 &mdash; 306 GPUs &bull; 6 tickets &bull; <span class="cat-badge cat-other">Other</span> (anthropic-claude-opus-4-6)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">5</td>
+        <td class="num gpu-val">305</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td>anthropic-claude-opus-4-6</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">1</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">scout-5-2 &mdash; 288 GPUs &bull; 2 tickets &bull; <span class="cat-badge cat-other">Other</span> (scout-5-2)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>scout-5-2</td>
+        <td>scout-5-2</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">144</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>scout-5-2</td>
+        <td>scout-5-2</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">144</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">scout-4-2 &mdash; 144 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-other">Other</span> (scout-4-2)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>scout-4-2</td>
+        <td>scout-4-2</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">144</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-41-mini-04-14 &mdash; 83 GPUs &bull; 6 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (GPT-4.1-mini)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-4.1-mini</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">50</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-4.1-mini</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">3</td>
+        <td class="num gpu-val">22</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-4.1-mini</td>
+        <td>gpt-41-mini-04-14</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">2</td>
+        <td class="num gpu-val">11</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-5-nano &mdash; 82 GPUs &bull; 2 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (GPT-5-chat)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-5-chat</td>
+        <td>gpt-5-nano</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num">2</td>
+        <td class="num gpu-val">82</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-41-nano-04-14 &mdash; 71 GPUs &bull; 2 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (GPT-4.1-mini)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-4.1-mini</td>
+        <td>gpt-41-nano-04-14</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">2</td>
+        <td class="num gpu-val">71</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">deepresearch &mdash; 70 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-other">Other</span> (deepresearch)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>deepresearch</td>
+        <td>deepresearch</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">70</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-5-mini &mdash; 69 GPUs &bull; 3 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (GPT-5-chat)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-5-chat</td>
+        <td>gpt-5-mini</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num">2</td>
+        <td class="num gpu-val">66</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-5-chat</td>
+        <td>gpt-5-mini</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">3</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-41-shortco-2025-04-14-responses &mdash; 50 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (GPT-4.1)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-4.1</td>
+        <td>gpt-41-shortco-2025-04-14-responses</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">50</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">prod-workberry-slot-a-ft &mdash; 20 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-ft">FT</span> (FT (workberry))</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-ft">FT</span></td>
+        <td>FT (workberry)</td>
+        <td>prod-workberry-slot-a-ft</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">20</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-5-chat-mini &mdash; 8 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-big6">Big 6</span> (GPT-5-chat)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-big6">Big 6</span></td>
+        <td>GPT-5-chat</td>
+        <td>gpt-5-chat-mini</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">8</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">onnx &mdash; 8 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-other">Other</span> (onnx)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>onnx</td>
+        <td>onnx</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">8</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">sonicberry &mdash; 7 GPUs &bull; 6 tickets &bull; <span class="cat-badge cat-other">Other</span> (sonicberry)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>sonicberry</td>
+        <td>sonicberry</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">6</td>
+        <td class="num gpu-val">7</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">Custom Neural Network &mdash; 1 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-other">Other</span> (Custom Neural Network)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>Custom Neural Network</td>
+        <td>Custom Neural Network</td>
+        <td><span class="status-badge status-inbuildout">In Buildout</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">1</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">gpt-image-1-5 &mdash; 1 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-other">Other</span> (gpt-image-1-5)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>gpt-image-1-5</td>
+        <td>gpt-image-1-5</td>
+        <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">1</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">qwen-3-06b &mdash; 1 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-other">Other</span> (qwen-3-06b)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>qwen-3-06b</td>
+        <td>qwen-3-06b</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">1</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">anthropic-claude-opus-4-5 &mdash; 1 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-other">Other</span> (anthropic-claude-opus-4-5)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>anthropic-claude-opus-4-5</td>
+        <td>anthropic-claude-opus-4-5</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">1</td>
+    </tr>
+    <tr class="group-header">
+        <td colspan="6" class="group-label">anthropic-claude-sonnet-4-6 &mdash; 1 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-other">Other</span> (anthropic-claude-sonnet-4-6)</td>
+    </tr>
+    <tr>
+        <td><span class="cat-badge cat-other">Other</span></td>
+        <td>anthropic-claude-sonnet-4-6</td>
+        <td>anthropic-claude-sonnet-4-6</td>
+        <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
+        <td class="num">1</td>
+        <td class="num gpu-val">1</td>
+    </tr>
+        </tbody>
+    </table>
+    </div>
+</div>
+
+</div><!-- end tab2 -->
+
+<script>
+// Tab switching
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+    // Initialize charts on first view
+    if (tabId === 'tab2' && !window._tab2Init) {
+        window._tab2Init = true;
+        initTab2Charts();
+    }
+}
+
+const CD = {"status": {"labels": ["Buildout Completed", "In Buildout", "Promoted to Cap Council"], "data": [2497, 199, 1889], "colors": ["#10b981", "#3b82f6", "#f59e0b"]}, "phase": {"labels": ["Internal Eval (SDF)", "Internal Eval (MSIT)", "Development"], "data": [2660, 1248, 677], "colors": ["#f97316", "#06b6d4", "#8b5cf6"]}, "model": {"labels": ["gpt-41-shortco-2025-04-14", "gpt-52-reasoning", "gpt-52-chat", "text-embedding-3-small", "anthropic-claude-opus-4-6", "scout-5-2", "scout-4-2", "gpt-41-mini-04-14", "gpt-5-nano", "gpt-41-nano-04-14", "deepresearch", "gpt-5-mini", "gpt-41-shortco-2025-04-14-responses", "prod-workberry-slot-a-ft", "gpt-5-chat-mini"], "data": [1573, 969, 523, 309, 306, 288, 144, 83, 82, 71, 70, 69, 50, 20, 8]}, "modelStatus": {"models": ["gpt-41-shortco-2025-04-14", "gpt-52-reasoning", "gpt-52-chat", "text-embedding-3-small", "anthropic-claude-opus-4-6", "scout-5-2", "scout-4-2", "gpt-41-mini-04-14", "gpt-5-nano", "gpt-41-nano-04-14", "deepresearch", "gpt-5-mini", "gpt-41-shortco-2025-04-14-responses", "prod-workberry-slot-a-ft", "gpt-5-chat-mini"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"gpt-52-reasoning": {"BuildoutCompleted": 941, "PromotedToCapCouncil": 28}, "gpt-52-chat": {"BuildoutCompleted": 507, "PromotedToCapCouncil": 16}, "text-embedding-3-small": {"BuildoutCompleted": 308, "PromotedToCapCouncil": 1}, "anthropic-claude-opus-4-6": {"BuildoutCompleted": 305, "PromotedToCapCouncil": 1}, "scout-4-2": {"BuildoutCompleted": 144}, "scout-5-2": {"BuildoutCompleted": 144, "PromotedToCapCouncil": 144}, "gpt-5-nano": {"InBuildout": 82}, "gpt-41-nano-04-14": {"BuildoutCompleted": 71}, "gpt-41-mini-04-14": {"InBuildout": 50, "BuildoutCompleted": 11, "PromotedToCapCouncil": 22}, "gpt-41-shortco-2025-04-14-responses": {"BuildoutCompleted": 50}, "gpt-5-mini": {"InBuildout": 66, "PromotedToCapCouncil": 3}, "gpt-5-chat-mini": {"BuildoutCompleted": 8}, "sonicberry": {"BuildoutCompleted": 7}, "Custom Neural Network": {"InBuildout": 1}, "gpt-image-1-5": {"BuildoutCompleted": 1}, "qwen-3-06b": {"PromotedToCapCouncil": 1}, "prod-workberry-slot-a-ft": {"PromotedToCapCouncil": 20}, "gpt-41-shortco-2025-04-14": {"PromotedToCapCouncil": 1573}, "onnx": {"PromotedToCapCouncil": 8}, "deepresearch": {"PromotedToCapCouncil": 70}, "anthropic-claude-opus-4-5": {"PromotedToCapCouncil": 1}, "anthropic-claude-sonnet-4-6": {"PromotedToCapCouncil": 1}}}, "phaseStatus": {"phases": ["Internal Eval (SDF)", "Internal Eval (MSIT)", "Development"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"Internal Eval (SDF)": {"BuildoutCompleted": 1409, "PromotedToCapCouncil": 1251}, "Internal Eval (MSIT)": {"BuildoutCompleted": 1025, "InBuildout": 66, "PromotedToCapCouncil": 157}, "Development": {"InBuildout": 133, "BuildoutCompleted": 63, "PromotedToCapCouncil": 481}}}};
+const T2 = {"catGpu": {"labels": ["Big 6", "FT", "Other"], "data": [3737, 20, 828], "colors": ["#3b82f6", "#f59e0b", "#ef4444"]}, "catTickets": {"labels": ["Big 6", "FT", "Other"], "data": [45, 1, 22], "colors": ["#3b82f6", "#f59e0b", "#ef4444"]}, "familyGpu": {"labels": ["GPT-4.1", "GPT-5-reasoning", "GPT-5-chat", "Text-embedding", "anthropic-claude-opus-4-6", "scout-5-2", "GPT-4.1-mini", "scout-4-2", "deepresearch", "FT (workberry)", "onnx", "sonicberry", "Custom Neural Network", "gpt-image-1-5", "qwen-3-06b", "anthropic-claude-opus-4-5", "anthropic-claude-sonnet-4-6"], "data": [1623, 969, 682, 309, 306, 288, 154, 144, 70, 20, 8, 7, 1, 1, 1, 1, 1], "colors": ["#3b82f6", "#3b82f6", "#3b82f6", "#3b82f6", "#ef4444", "#ef4444", "#3b82f6", "#ef4444", "#ef4444", "#f59e0b", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"]}, "modelStatus": {"models": ["gpt-41-shortco-2025-04-14", "gpt-52-reasoning", "gpt-52-chat", "text-embedding-3-small", "anthropic-claude-opus-4-6", "scout-5-2", "scout-4-2", "gpt-41-mini-04-14", "gpt-5-nano", "gpt-41-nano-04-14", "deepresearch", "gpt-5-mini", "gpt-41-shortco-2025-04-14-responses", "prod-workberry-slot-a-ft", "gpt-5-chat-mini"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"gpt-52-reasoning": {"BuildoutCompleted": 941, "PromotedToCapCouncil": 28}, "gpt-52-chat": {"BuildoutCompleted": 507, "PromotedToCapCouncil": 16}, "text-embedding-3-small": {"BuildoutCompleted": 308, "PromotedToCapCouncil": 1}, "anthropic-claude-opus-4-6": {"BuildoutCompleted": 305, "PromotedToCapCouncil": 1}, "scout-4-2": {"BuildoutCompleted": 144}, "scout-5-2": {"BuildoutCompleted": 144, "PromotedToCapCouncil": 144}, "gpt-5-nano": {"InBuildout": 82}, "gpt-41-nano-04-14": {"BuildoutCompleted": 71}, "gpt-41-mini-04-14": {"InBuildout": 50, "BuildoutCompleted": 11, "PromotedToCapCouncil": 22}, "gpt-41-shortco-2025-04-14-responses": {"BuildoutCompleted": 50}, "gpt-5-mini": {"InBuildout": 66, "PromotedToCapCouncil": 3}, "gpt-5-chat-mini": {"BuildoutCompleted": 8}, "sonicberry": {"BuildoutCompleted": 7}, "Custom Neural Network": {"InBuildout": 1}, "gpt-image-1-5": {"BuildoutCompleted": 1}, "qwen-3-06b": {"PromotedToCapCouncil": 1}, "prod-workberry-slot-a-ft": {"PromotedToCapCouncil": 20}, "gpt-41-shortco-2025-04-14": {"PromotedToCapCouncil": 1573}, "onnx": {"PromotedToCapCouncil": 8}, "deepresearch": {"PromotedToCapCouncil": 70}, "anthropic-claude-opus-4-5": {"PromotedToCapCouncil": 1}, "anthropic-claude-sonnet-4-6": {"PromotedToCapCouncil": 1}}}, "big6Status": {"families": ["GPT-4.1", "GPT-5-reasoning", "GPT-5-chat", "Text-embedding", "GPT-4.1-mini"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"GPT-5-reasoning": {"BuildoutCompleted": 941, "PromotedToCapCouncil": 28}, "GPT-5-chat": {"BuildoutCompleted": 515, "InBuildout": 148, "PromotedToCapCouncil": 19}, "Text-embedding": {"BuildoutCompleted": 308, "PromotedToCapCouncil": 1}, "GPT-4.1-mini": {"BuildoutCompleted": 82, "InBuildout": 50, "PromotedToCapCouncil": 22}, "GPT-4.1": {"BuildoutCompleted": 50, "PromotedToCapCouncil": 1573}}}};
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#334155';
+
+// ---- Tab 1 Charts ----
+new Chart(document.getElementById('chartPhase'), {
+    type: 'bar',
+    data: {
+        labels: CD.phase.labels,
+        datasets: [{ label: 'GPU', data: CD.phase.data, backgroundColor: CD.phase.colors, borderRadius: 6 }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { ticks: { callback: v => v.toLocaleString() } } }
+    }
+});
+
+const ps = CD.phaseStatus;
+new Chart(document.getElementById('chartPhaseStatus'), {
+    type: 'bar',
+    data: {
+        labels: ps.phases,
+        datasets: ps.statuses.map(s => ({
+            label: ps.statusLabels[s],
+            data: ps.phases.map(p => (ps.data[p] && ps.data[p][s]) || 0),
+            backgroundColor: ps.statusColors[s] || '#64748b', borderRadius: 2
+        }))
+    },
+    options: {
+        responsive: true,
+        scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => v.toLocaleString() } } },
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: {
+        labels: CD.status.labels,
+        datasets: [{ data: CD.status.data, backgroundColor: CD.status.colors, borderWidth: 0 }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString() + ' GPUs' } }
+        }
+    }
+});
+
+new Chart(document.getElementById('chartModel'), {
+    type: 'bar',
+    data: {
+        labels: CD.model.labels,
+        datasets: [{ label: 'GPU', data: CD.model.data, backgroundColor: '#3b82f6', borderRadius: 4 }]
+    },
+    options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => v.toLocaleString() } } } }
+});
+
+const ms = CD.modelStatus;
+new Chart(document.getElementById('chartModelStatus'), {
+    type: 'bar',
+    data: {
+        labels: ms.models,
+        datasets: ms.statuses.map(s => ({
+            label: ms.statusLabels[s],
+            data: ms.models.map(m => (ms.data[m] && ms.data[m][s]) || 0),
+            backgroundColor: ms.statusColors[s] || '#64748b', borderRadius: 2
+        }))
+    },
+    options: {
+        indexAxis: 'y', responsive: true,
+        scales: { x: { stacked: true, ticks: { callback: v => v.toLocaleString() } }, y: { stacked: true } },
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+// ---- Tab 2 Charts (lazy init) ----
+function initTab2Charts() {
+    new Chart(document.getElementById('chartCatGpu'), {
+        type: 'doughnut',
+        data: {
+            labels: T2.catGpu.labels,
+            datasets: [{ data: T2.catGpu.data, backgroundColor: T2.catGpu.colors, borderWidth: 0 }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString() + ' GPUs' } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('chartCatTickets'), {
+        type: 'doughnut',
+        data: {
+            labels: T2.catTickets.labels,
+            datasets: [{ data: T2.catTickets.data, backgroundColor: T2.catTickets.colors, borderWidth: 0 }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString() + ' tickets' } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('chartFamilyGpu'), {
+        type: 'bar',
+        data: {
+            labels: T2.familyGpu.labels,
+            datasets: [{ label: 'GPU', data: T2.familyGpu.data, backgroundColor: T2.familyGpu.colors, borderRadius: 4 }]
+        },
+        options: {
+            indexAxis: 'y', responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { ticks: { callback: v => v.toLocaleString() } } }
+        }
+    });
+
+    const b6 = T2.big6Status;
+    new Chart(document.getElementById('chartBig6Status'), {
+        type: 'bar',
+        data: {
+            labels: b6.families,
+            datasets: b6.statuses.map(s => ({
+                label: b6.statusLabels[s],
+                data: b6.families.map(f => (b6.data[f] && b6.data[f][s]) || 0),
+                backgroundColor: b6.statusColors[s] || '#64748b', borderRadius: 2
+            }))
+        },
+        options: {
+            responsive: true,
+            scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => v.toLocaleString() } } },
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+}
+</script>
+</body>
+</html>
