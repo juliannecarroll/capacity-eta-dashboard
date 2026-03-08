@@ -60,6 +60,7 @@ tr.group-header td { background: #0f172a; border-top: 2px solid #475569; }
 .cat-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
 .cat-big6 { background: rgba(59,130,246,0.15); color: #3b82f6; }
 .cat-ft { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.cat-newmodels { background: rgba(168,85,247,0.15); color: #a855f7; }
 .cat-other { background: rgba(239,68,68,0.15); color: #ef4444; }
 
 canvas { max-height: 350px; }
@@ -1312,29 +1313,30 @@ canvas { max-height: 350px; }
 <div class="note">
     Model categories: <strong>Big 6</strong> = GPT-4o, GPT-4.1, GPT-4.1-mini, GPT-5-chat, GPT-5-reasoning, Text-embedding &bull;
     <strong>FT</strong> = Fine-tuned models (contain "ft" in name) &bull;
-    <strong>Other</strong> = All remaining models (Anthropic, Scout, DeepResearch, etc.)
+    <strong>New Models</strong> = Scout models &bull;
+    <strong>Other</strong> = All remaining models (Anthropic, DeepResearch, etc.)
 </div>
 
 <div class="cards">
     <div class="card">
         <div class="label">Big 6 GPUs</div>
         <div class="value" style="color:#3b82f6">3,737</div>
-        <div class="sub">45 tickets</div>
     </div>
     <div class="card">
         <div class="label">FT GPUs</div>
         <div class="value" style="color:#f59e0b">20</div>
-        <div class="sub">1 tickets</div>
+    </div>
+    <div class="card">
+        <div class="label">New Models GPUs</div>
+        <div class="value" style="color:#a855f7">432</div>
     </div>
     <div class="card">
         <div class="label">Other GPUs</div>
-        <div class="value" style="color:#ef4444">828</div>
-        <div class="sub">22 tickets</div>
+        <div class="value" style="color:#ef4444">396</div>
     </div>
     <div class="card">
         <div class="label">Total GPUs</div>
         <div class="value">4,585</div>
-        <div class="sub">All categories</div>
     </div>
 </div>
 
@@ -1342,10 +1344,6 @@ canvas { max-height: 350px; }
     <div class="chart-box">
         <h3>GPU by Category</h3>
         <canvas id="chartCatGpu"></canvas>
-    </div>
-    <div class="chart-box">
-        <h3>Tickets by Category</h3>
-        <canvas id="chartCatTickets"></canvas>
     </div>
     <div class="chart-box">
         <h3>GPU by Model Family (colored by category)</h3>
@@ -1460,10 +1458,10 @@ canvas { max-height: 350px; }
         <td class="num gpu-val">1</td>
     </tr>
     <tr class="group-header">
-        <td colspan="6" class="group-label">scout-5-2 &mdash; 288 GPUs &bull; 2 tickets &bull; <span class="cat-badge cat-other">Other</span> (scout-5-2)</td>
+        <td colspan="6" class="group-label">scout-5-2 &mdash; 288 GPUs &bull; 2 tickets &bull; <span class="cat-badge cat-newmodels">New Models</span> (scout-5-2)</td>
     </tr>
     <tr>
-        <td><span class="cat-badge cat-other">Other</span></td>
+        <td><span class="cat-badge cat-newmodels">New Models</span></td>
         <td>scout-5-2</td>
         <td>scout-5-2</td>
         <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
@@ -1471,7 +1469,7 @@ canvas { max-height: 350px; }
         <td class="num gpu-val">144</td>
     </tr>
     <tr>
-        <td><span class="cat-badge cat-other">Other</span></td>
+        <td><span class="cat-badge cat-newmodels">New Models</span></td>
         <td>scout-5-2</td>
         <td>scout-5-2</td>
         <td><span class="status-badge status-promotedtocapcouncil">Promoted to Cap Council</span></td>
@@ -1479,10 +1477,10 @@ canvas { max-height: 350px; }
         <td class="num gpu-val">144</td>
     </tr>
     <tr class="group-header">
-        <td colspan="6" class="group-label">scout-4-2 &mdash; 144 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-other">Other</span> (scout-4-2)</td>
+        <td colspan="6" class="group-label">scout-4-2 &mdash; 144 GPUs &bull; 1 tickets &bull; <span class="cat-badge cat-newmodels">New Models</span> (scout-4-2)</td>
     </tr>
     <tr>
-        <td><span class="cat-badge cat-other">Other</span></td>
+        <td><span class="cat-badge cat-newmodels">New Models</span></td>
         <td>scout-4-2</td>
         <td>scout-4-2</td>
         <td><span class="status-badge status-buildoutcompleted">Buildout Completed</span></td>
@@ -1700,7 +1698,7 @@ function switchTab(tabId) {
 }
 
 const CD = {"status": {"labels": ["Buildout Completed", "In Buildout", "Promoted to Cap Council"], "data": [2497, 199, 1889], "colors": ["#10b981", "#3b82f6", "#f59e0b"]}, "phase": {"labels": ["Internal Eval (SDF)", "Internal Eval (MSIT)", "Development"], "data": [2660, 1248, 677], "colors": ["#f97316", "#06b6d4", "#8b5cf6"]}, "model": {"labels": ["gpt-41-shortco-2025-04-14", "gpt-52-reasoning", "gpt-52-chat", "text-embedding-3-small", "anthropic-claude-opus-4-6", "scout-5-2", "scout-4-2", "gpt-41-mini-04-14", "gpt-5-nano", "gpt-41-nano-04-14", "deepresearch", "gpt-5-mini", "gpt-41-shortco-2025-04-14-responses", "prod-workberry-slot-a-ft", "gpt-5-chat-mini"], "data": [1573, 969, 523, 309, 306, 288, 144, 83, 82, 71, 70, 69, 50, 20, 8]}, "modelStatus": {"models": ["gpt-41-shortco-2025-04-14", "gpt-52-reasoning", "gpt-52-chat", "text-embedding-3-small", "anthropic-claude-opus-4-6", "scout-5-2", "scout-4-2", "gpt-41-mini-04-14", "gpt-5-nano", "gpt-41-nano-04-14", "deepresearch", "gpt-5-mini", "gpt-41-shortco-2025-04-14-responses", "prod-workberry-slot-a-ft", "gpt-5-chat-mini"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"gpt-52-reasoning": {"BuildoutCompleted": 941, "PromotedToCapCouncil": 28}, "gpt-52-chat": {"BuildoutCompleted": 507, "PromotedToCapCouncil": 16}, "text-embedding-3-small": {"BuildoutCompleted": 308, "PromotedToCapCouncil": 1}, "anthropic-claude-opus-4-6": {"BuildoutCompleted": 305, "PromotedToCapCouncil": 1}, "scout-4-2": {"BuildoutCompleted": 144}, "scout-5-2": {"BuildoutCompleted": 144, "PromotedToCapCouncil": 144}, "gpt-5-nano": {"InBuildout": 82}, "gpt-41-nano-04-14": {"BuildoutCompleted": 71}, "gpt-41-mini-04-14": {"InBuildout": 50, "BuildoutCompleted": 11, "PromotedToCapCouncil": 22}, "gpt-41-shortco-2025-04-14-responses": {"BuildoutCompleted": 50}, "gpt-5-mini": {"InBuildout": 66, "PromotedToCapCouncil": 3}, "gpt-5-chat-mini": {"BuildoutCompleted": 8}, "sonicberry": {"BuildoutCompleted": 7}, "Custom Neural Network": {"InBuildout": 1}, "gpt-image-1-5": {"BuildoutCompleted": 1}, "qwen-3-06b": {"PromotedToCapCouncil": 1}, "prod-workberry-slot-a-ft": {"PromotedToCapCouncil": 20}, "gpt-41-shortco-2025-04-14": {"PromotedToCapCouncil": 1573}, "onnx": {"PromotedToCapCouncil": 8}, "deepresearch": {"PromotedToCapCouncil": 70}, "anthropic-claude-opus-4-5": {"PromotedToCapCouncil": 1}, "anthropic-claude-sonnet-4-6": {"PromotedToCapCouncil": 1}}}, "phaseStatus": {"phases": ["Internal Eval (SDF)", "Internal Eval (MSIT)", "Development"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"Internal Eval (SDF)": {"BuildoutCompleted": 1409, "PromotedToCapCouncil": 1251}, "Internal Eval (MSIT)": {"BuildoutCompleted": 1025, "InBuildout": 66, "PromotedToCapCouncil": 157}, "Development": {"InBuildout": 133, "BuildoutCompleted": 63, "PromotedToCapCouncil": 481}}}};
-const T2 = {"catGpu": {"labels": ["Big 6", "FT", "Other"], "data": [3737, 20, 828], "colors": ["#3b82f6", "#f59e0b", "#ef4444"]}, "catTickets": {"labels": ["Big 6", "FT", "Other"], "data": [45, 1, 22], "colors": ["#3b82f6", "#f59e0b", "#ef4444"]}, "familyGpu": {"labels": ["GPT-4.1", "GPT-5-reasoning", "GPT-5-chat", "Text-embedding", "anthropic-claude-opus-4-6", "scout-5-2", "GPT-4.1-mini", "scout-4-2", "deepresearch", "FT (workberry)", "onnx", "sonicberry", "Custom Neural Network", "gpt-image-1-5", "qwen-3-06b", "anthropic-claude-opus-4-5", "anthropic-claude-sonnet-4-6"], "data": [1623, 969, 682, 309, 306, 288, 154, 144, 70, 20, 8, 7, 1, 1, 1, 1, 1], "colors": ["#3b82f6", "#3b82f6", "#3b82f6", "#3b82f6", "#ef4444", "#ef4444", "#3b82f6", "#ef4444", "#ef4444", "#f59e0b", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"]}, "modelStatus": {"models": ["gpt-41-shortco-2025-04-14", "gpt-52-reasoning", "gpt-52-chat", "text-embedding-3-small", "anthropic-claude-opus-4-6", "scout-5-2", "scout-4-2", "gpt-41-mini-04-14", "gpt-5-nano", "gpt-41-nano-04-14", "deepresearch", "gpt-5-mini", "gpt-41-shortco-2025-04-14-responses", "prod-workberry-slot-a-ft", "gpt-5-chat-mini"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"gpt-52-reasoning": {"BuildoutCompleted": 941, "PromotedToCapCouncil": 28}, "gpt-52-chat": {"BuildoutCompleted": 507, "PromotedToCapCouncil": 16}, "text-embedding-3-small": {"BuildoutCompleted": 308, "PromotedToCapCouncil": 1}, "anthropic-claude-opus-4-6": {"BuildoutCompleted": 305, "PromotedToCapCouncil": 1}, "scout-4-2": {"BuildoutCompleted": 144}, "scout-5-2": {"BuildoutCompleted": 144, "PromotedToCapCouncil": 144}, "gpt-5-nano": {"InBuildout": 82}, "gpt-41-nano-04-14": {"BuildoutCompleted": 71}, "gpt-41-mini-04-14": {"InBuildout": 50, "BuildoutCompleted": 11, "PromotedToCapCouncil": 22}, "gpt-41-shortco-2025-04-14-responses": {"BuildoutCompleted": 50}, "gpt-5-mini": {"InBuildout": 66, "PromotedToCapCouncil": 3}, "gpt-5-chat-mini": {"BuildoutCompleted": 8}, "sonicberry": {"BuildoutCompleted": 7}, "Custom Neural Network": {"InBuildout": 1}, "gpt-image-1-5": {"BuildoutCompleted": 1}, "qwen-3-06b": {"PromotedToCapCouncil": 1}, "prod-workberry-slot-a-ft": {"PromotedToCapCouncil": 20}, "gpt-41-shortco-2025-04-14": {"PromotedToCapCouncil": 1573}, "onnx": {"PromotedToCapCouncil": 8}, "deepresearch": {"PromotedToCapCouncil": 70}, "anthropic-claude-opus-4-5": {"PromotedToCapCouncil": 1}, "anthropic-claude-sonnet-4-6": {"PromotedToCapCouncil": 1}}}, "big6Status": {"families": ["GPT-4.1", "GPT-5-reasoning", "GPT-5-chat", "Text-embedding", "GPT-4.1-mini"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"GPT-5-reasoning": {"BuildoutCompleted": 941, "PromotedToCapCouncil": 28}, "GPT-5-chat": {"BuildoutCompleted": 515, "InBuildout": 148, "PromotedToCapCouncil": 19}, "Text-embedding": {"BuildoutCompleted": 308, "PromotedToCapCouncil": 1}, "GPT-4.1-mini": {"BuildoutCompleted": 82, "InBuildout": 50, "PromotedToCapCouncil": 22}, "GPT-4.1": {"BuildoutCompleted": 50, "PromotedToCapCouncil": 1573}}}};
+const T2 = {"catGpu": {"labels": ["Big 6", "FT", "New Models", "Other"], "data": [3737, 20, 432, 396], "colors": ["#3b82f6", "#f59e0b", "#a855f7", "#ef4444"]}, "catTickets": {"labels": ["Big 6", "FT", "New Models", "Other"], "data": [45, 1, 3, 19], "colors": ["#3b82f6", "#f59e0b", "#a855f7", "#ef4444"]}, "familyGpu": {"labels": ["GPT-4.1", "GPT-5-reasoning", "GPT-5-chat", "Text-embedding", "anthropic-claude-opus-4-6", "scout-5-2", "GPT-4.1-mini", "scout-4-2", "deepresearch", "FT (workberry)", "onnx", "sonicberry", "Custom Neural Network", "gpt-image-1-5", "qwen-3-06b", "anthropic-claude-opus-4-5", "anthropic-claude-sonnet-4-6"], "data": [1623, 969, 682, 309, 306, 288, 154, 144, 70, 20, 8, 7, 1, 1, 1, 1, 1], "colors": ["#3b82f6", "#3b82f6", "#3b82f6", "#3b82f6", "#ef4444", "#a855f7", "#3b82f6", "#a855f7", "#ef4444", "#f59e0b", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"]}, "modelStatus": {"models": ["gpt-41-shortco-2025-04-14", "gpt-52-reasoning", "gpt-52-chat", "text-embedding-3-small", "anthropic-claude-opus-4-6", "scout-5-2", "scout-4-2", "gpt-41-mini-04-14", "gpt-5-nano", "gpt-41-nano-04-14", "deepresearch", "gpt-5-mini", "gpt-41-shortco-2025-04-14-responses", "prod-workberry-slot-a-ft", "gpt-5-chat-mini"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"gpt-52-reasoning": {"BuildoutCompleted": 941, "PromotedToCapCouncil": 28}, "gpt-52-chat": {"BuildoutCompleted": 507, "PromotedToCapCouncil": 16}, "text-embedding-3-small": {"BuildoutCompleted": 308, "PromotedToCapCouncil": 1}, "anthropic-claude-opus-4-6": {"BuildoutCompleted": 305, "PromotedToCapCouncil": 1}, "scout-4-2": {"BuildoutCompleted": 144}, "scout-5-2": {"BuildoutCompleted": 144, "PromotedToCapCouncil": 144}, "gpt-5-nano": {"InBuildout": 82}, "gpt-41-nano-04-14": {"BuildoutCompleted": 71}, "gpt-41-mini-04-14": {"InBuildout": 50, "BuildoutCompleted": 11, "PromotedToCapCouncil": 22}, "gpt-41-shortco-2025-04-14-responses": {"BuildoutCompleted": 50}, "gpt-5-mini": {"InBuildout": 66, "PromotedToCapCouncil": 3}, "gpt-5-chat-mini": {"BuildoutCompleted": 8}, "sonicberry": {"BuildoutCompleted": 7}, "Custom Neural Network": {"InBuildout": 1}, "gpt-image-1-5": {"BuildoutCompleted": 1}, "qwen-3-06b": {"PromotedToCapCouncil": 1}, "prod-workberry-slot-a-ft": {"PromotedToCapCouncil": 20}, "gpt-41-shortco-2025-04-14": {"PromotedToCapCouncil": 1573}, "onnx": {"PromotedToCapCouncil": 8}, "deepresearch": {"PromotedToCapCouncil": 70}, "anthropic-claude-opus-4-5": {"PromotedToCapCouncil": 1}, "anthropic-claude-sonnet-4-6": {"PromotedToCapCouncil": 1}}}, "big6Status": {"families": ["GPT-4.1", "GPT-5-reasoning", "GPT-5-chat", "Text-embedding", "GPT-4.1-mini"], "statuses": ["BuildoutCompleted", "InBuildout", "PromotedToCapCouncil"], "statusLabels": {"BuildoutCompleted": "Buildout Completed", "InBuildout": "In Buildout", "PromotedToCapCouncil": "Promoted to Cap Council"}, "statusColors": {"PromotedToCapCouncil": "#f59e0b", "InBuildout": "#3b82f6", "BuildoutCompleted": "#10b981"}, "data": {"GPT-5-reasoning": {"BuildoutCompleted": 941, "PromotedToCapCouncil": 28}, "GPT-5-chat": {"BuildoutCompleted": 515, "InBuildout": 148, "PromotedToCapCouncil": 19}, "Text-embedding": {"BuildoutCompleted": 308, "PromotedToCapCouncil": 1}, "GPT-4.1-mini": {"BuildoutCompleted": 82, "InBuildout": 50, "PromotedToCapCouncil": 22}, "GPT-4.1": {"BuildoutCompleted": 50, "PromotedToCapCouncil": 1573}}}};
 Chart.defaults.color = '#94a3b8';
 Chart.defaults.borderColor = '#334155';
 
@@ -1782,21 +1780,6 @@ function initTab2Charts() {
             plugins: {
                 legend: { position: 'bottom' },
                 tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString() + ' GPUs' } }
-            }
-        }
-    });
-
-    new Chart(document.getElementById('chartCatTickets'), {
-        type: 'doughnut',
-        data: {
-            labels: T2.catTickets.labels,
-            datasets: [{ data: T2.catTickets.data, backgroundColor: T2.catTickets.colors, borderWidth: 0 }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom' },
-                tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString() + ' tickets' } }
             }
         }
     });
