@@ -793,11 +793,26 @@ canvas { max-height: 350px; }
 <div id="tab2" class="tab-content">
 <p style="color:#64748b; font-size:0.85rem; margin-bottom:16px;">Feature Phases: All (including GA-WW)</p>
 
-<div class="note">
-    Model categories: <strong>Big 6</strong> = GPT-4o, GPT-4.1, GPT-4.1-mini, GPT-5-chat, GPT-5-reasoning, Text-embedding &bull;
-    <strong>FT</strong> = Fine-tuned models (contain "ft" in name) &bull;
-    <strong>New Models</strong> = Scout models &bull;
-    <strong>Other</strong> = All remaining models (Anthropic, DeepResearch, etc.)
+<div style="background:#1e293b; border:1px solid #334155; border-radius:12px; padding:20px 24px; margin-bottom:24px;">
+    <h3 style="color:#f8fafc; font-size:1rem; margin-bottom:14px;">Model Categories</h3>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:12px;">
+        <div style="border-left:4px solid #3b82f6; padding:8px 14px; background:#0f172a; border-radius:6px;">
+            <div style="font-weight:700; color:#3b82f6; font-size:0.9rem;">Big 6</div>
+            <div style="color:#94a3b8; font-size:0.8rem; margin-top:2px;">GPT-4o, GPT-4.1, GPT-4.1-mini, GPT-5-chat, GPT-5-reasoning, Text-embedding</div>
+        </div>
+        <div style="border-left:4px solid #f59e0b; padding:8px 14px; background:#0f172a; border-radius:6px;">
+            <div style="font-weight:700; color:#f59e0b; font-size:0.9rem;">FT (Fine-Tuned)</div>
+            <div style="color:#94a3b8; font-size:0.8rem; margin-top:2px;">Models containing &ldquo;ft&rdquo; in name (e.g. lu-ftv5-slot-a-ft, prod-workberry-slot-a-ft)</div>
+        </div>
+        <div style="border-left:4px solid #a855f7; padding:8px 14px; background:#0f172a; border-radius:6px;">
+            <div style="font-weight:700; color:#a855f7; font-size:0.9rem;">New Models</div>
+            <div style="color:#94a3b8; font-size:0.8rem; margin-top:2px;">Scout models (scout-4-2, scout-5-2)</div>
+        </div>
+        <div style="border-left:4px solid #ef4444; padding:8px 14px; background:#0f172a; border-radius:6px;">
+            <div style="font-weight:700; color:#ef4444; font-size:0.9rem;">Other</div>
+            <div style="color:#94a3b8; font-size:0.8rem; margin-top:2px;">All remaining models (Anthropic, DeepResearch, sonicberry, etc.)</div>
+        </div>
+    </div>
 </div>
 
 <div class="cards">
