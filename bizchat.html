@@ -92,11 +92,6 @@ canvas { max-height: 350px; }
         <div class="value">4,585</div>
     </div>
     <div class="card">
-        <div class="label">Total GPU Approved</div>
-        <div class="value">2,696</div>
-        <div class="sub">59% of requested</div>
-    </div>
-    <div class="card">
         <div class="label">Promoted to Cap Council</div>
         <div class="value" style="color:#f59e0b">1,889</div>
         <div class="sub">GPUs</div>
@@ -155,13 +150,19 @@ canvas { max-height: 350px; }
         <canvas id="chartStatus"></canvas>
     </div>
     <div class="chart-box">
-        <h3>GPU by Model (Top 15)</h3>
-        <canvas id="chartModel"></canvas>
-    </div>
-    <div class="chart-box">
         <h3>GPU by Model &amp; Status (Stacked)</h3>
         <canvas id="chartModelStatus"></canvas>
     </div>
+</div>
+
+<div class="table-section">
+    <h3>GPU by Model</h3>
+    <table>
+        <thead>
+            <tr><th>Model</th><th style="text-align:right;">Total GPU Requested</th></tr>
+        </thead>
+        <tbody><tr><td>gpt-41-shortco-2025-04-14</td><td class="num gpu-val">1,573</td></tr><tr><td>gpt-52-reasoning</td><td class="num gpu-val">969</td></tr><tr><td>gpt-52-chat</td><td class="num gpu-val">523</td></tr><tr><td>text-embedding-3-small</td><td class="num gpu-val">309</td></tr><tr><td>anthropic-claude-opus-4-6</td><td class="num gpu-val">306</td></tr><tr><td>scout-5-2</td><td class="num gpu-val">288</td></tr><tr><td>scout-4-2</td><td class="num gpu-val">144</td></tr><tr><td>gpt-41-mini-04-14</td><td class="num gpu-val">83</td></tr><tr><td>gpt-5-nano</td><td class="num gpu-val">82</td></tr><tr><td>gpt-41-nano-04-14</td><td class="num gpu-val">71</td></tr><tr><td>deepresearch</td><td class="num gpu-val">70</td></tr><tr><td>gpt-5-mini</td><td class="num gpu-val">69</td></tr><tr><td>gpt-41-shortco-2025-04-14-responses</td><td class="num gpu-val">50</td></tr><tr><td>prod-workberry-slot-a-ft</td><td class="num gpu-val">20</td></tr><tr><td>gpt-5-chat-mini</td><td class="num gpu-val">8</td></tr><tr><td>onnx</td><td class="num gpu-val">8</td></tr><tr><td>sonicberry</td><td class="num gpu-val">7</td></tr><tr><td>Custom Neural Network</td><td class="num gpu-val">1</td></tr><tr><td>gpt-image-1-5</td><td class="num gpu-val">1</td></tr><tr><td>qwen-3-06b</td><td class="num gpu-val">1</td></tr><tr><td>anthropic-claude-opus-4-5</td><td class="num gpu-val">1</td></tr><tr><td>anthropic-claude-sonnet-4-6</td><td class="num gpu-val">1</td></tr></tbody>
+    </table>
 </div>
 
 <div class="table-section">
@@ -1748,15 +1749,6 @@ new Chart(document.getElementById('chartStatus'), {
             tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString() + ' GPUs' } }
         }
     }
-});
-
-new Chart(document.getElementById('chartModel'), {
-    type: 'bar',
-    data: {
-        labels: CD.model.labels,
-        datasets: [{ label: 'GPU', data: CD.model.data, backgroundColor: '#3b82f6', borderRadius: 4 }]
-    },
-    options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => v.toLocaleString() } } } }
 });
 
 const ms = CD.modelStatus;
