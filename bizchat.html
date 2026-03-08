@@ -146,14 +146,6 @@ canvas { max-height: 350px; }
         <h3>GPU by Feature Phase &amp; Status (Stacked)</h3>
         <canvas id="chartPhaseStatus"></canvas>
     </div>
-    <div class="chart-box">
-        <h3>GPU by Status</h3>
-        <canvas id="chartStatus"></canvas>
-    </div>
-    <div class="chart-box">
-        <h3>GPU by Model &amp; Status (Stacked)</h3>
-        <canvas id="chartModelStatus"></canvas>
-    </div>
 </div>
 
 <div class="table-section">
@@ -1792,38 +1784,6 @@ new Chart(document.getElementById('chartPhaseStatus'), {
     }
 });
 
-new Chart(document.getElementById('chartStatus'), {
-    type: 'doughnut',
-    data: {
-        labels: CD.status.labels,
-        datasets: [{ data: CD.status.data, backgroundColor: CD.status.colors, borderWidth: 0 }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'bottom' },
-            tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString() + ' GPUs' } }
-        }
-    }
-});
-
-const ms = CD.modelStatus;
-new Chart(document.getElementById('chartModelStatus'), {
-    type: 'bar',
-    data: {
-        labels: ms.models,
-        datasets: ms.statuses.map(s => ({
-            label: ms.statusLabels[s],
-            data: ms.models.map(m => (ms.data[m] && ms.data[m][s]) || 0),
-            backgroundColor: ms.statusColors[s] || '#64748b', borderRadius: 2
-        }))
-    },
-    options: {
-        indexAxis: 'y', responsive: true,
-        scales: { x: { stacked: true, ticks: { callback: v => v.toLocaleString() } }, y: { stacked: true } },
-        plugins: { legend: { position: 'bottom' } }
-    }
-});
 
 // ---- Tab 2 Charts (lazy init) ----
 function initTab2Charts() {
