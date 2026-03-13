@@ -136,6 +136,7 @@ def main():
             "estd_margin": estd_margin,
             "echo_action": echo_action,
             "estd_action": estd_action,
+            "significant": base_act >= 1000,
         })
     rows_data.sort(key=lambda r: r["base_act"], reverse=True)
     print(f"  {len(rows_data)} models total")
@@ -147,6 +148,8 @@ def main():
     def js_val(v):
         if v is None:
             return "null"
+        if isinstance(v, bool):
+            return "true" if v else "false"
         if isinstance(v, int):
             return str(v)
         return json.dumps(v)
@@ -154,7 +157,7 @@ def main():
     js_lines = []
     keys = ["model", "es_act", "cp_act", "base_act", "pct3",
             "ec_appr", "est_appr", "echo_margin", "estd_margin",
-            "echo_action", "estd_action"]
+            "echo_action", "estd_action", "significant"]
     for r in rows_data:
         parts = [f"{k}: {js_val(r[k])}" for k in keys]
         js_lines.append("        {" + ", ".join(parts) + "},")
