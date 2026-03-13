@@ -170,10 +170,20 @@
             font-weight: 500;
         }
 
+        /* Action column headers */
+        th.action-col {
+            background: #c50f1f;
+            color: #fff;
+        }
+        th.action-col:hover { background: #a80d19; }
+        th.action-col .sort-arrow { color: #fff; }
+
         /* Action cells */
         .action-value {
+            background: #fde7e9;
             color: #c50f1f;
             font-weight: 700;
+            font-size: 14px;
         }
 
         /* Zero / empty muted */
@@ -212,7 +222,7 @@
 <!-- Sub header -->
 <div class="sub-header">
     <h1>Echo Shadow RPM Gap Analysis</h1>
-    <p>Compares Echo / Echo Standard approved RPM against 3% of baseline (Enterprise Sydney + CWC Paid) 7-day peak actuals. Red = deficit, needs increase.</p>
+    <p>Compares Echo / Echo Standard approved RPM limits against 3% of baseline (ES + CWC Paid) 7-day peak RPM actuals. Red columns = proposed new RPM limits where current limit is below 3% target.</p>
 </div>
 
 <!-- Main -->
@@ -237,8 +247,8 @@
     <!-- Filter bar -->
     <div class="filter-bar">
         <input type="text" class="search-input" id="searchInput" placeholder="Search model name...">
-        <button class="filter-chip active" data-filter="all">All</button>
-        <button class="filter-chip" data-filter="action">Action Needed</button>
+        <button class="filter-chip" data-filter="all">All</button>
+        <button class="filter-chip active" data-filter="action">Action Needed</button>
         <button class="filter-chip" data-filter="ok">OK</button>
     </div>
 
@@ -248,16 +258,16 @@
             <thead>
                 <tr>
                     <th data-col="model" data-type="string">ModelName <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="es_act" data-type="number">ES Actual <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="cp_act" data-type="number">CWC Paid Actual <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="base_act" data-type="number">ES+CWC Actual <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="pct3" data-type="number">3% of ES+CWC <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="ec_appr" data-type="number">Echo Approved <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="est_appr" data-type="number">EchoStd Approved <span class="sort-arrow">&#9650;</span></th>
+                    <th data-col="es_act" data-type="number">ES Peak RPM <span class="sort-arrow">&#9650;</span></th>
+                    <th data-col="cp_act" data-type="number">CWC Paid Peak RPM <span class="sort-arrow">&#9650;</span></th>
+                    <th data-col="base_act" data-type="number">ES+CWC Peak RPM <span class="sort-arrow">&#9650;</span></th>
+                    <th data-col="pct3" data-type="number">3% RPM Target <span class="sort-arrow">&#9650;</span></th>
+                    <th data-col="ec_appr" data-type="number">Echo RPM Limit <span class="sort-arrow">&#9650;</span></th>
+                    <th data-col="est_appr" data-type="number">EchoStd RPM Limit <span class="sort-arrow">&#9650;</span></th>
                     <th data-col="echo_margin" data-type="number">Echo Margin <span class="sort-arrow">&#9650;</span></th>
                     <th data-col="estd_margin" data-type="number">EchoStd Margin <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="echo_action" data-type="number">Echo Set To <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="estd_action" data-type="number">EchoStd Set To <span class="sort-arrow">&#9650;</span></th>
+                    <th data-col="echo_action" data-type="number" class="action-col">Echo Set To <span class="sort-arrow">&#9650;</span></th>
+                    <th data-col="estd_action" data-type="number" class="action-col">EchoStd Set To <span class="sort-arrow">&#9650;</span></th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -400,15 +410,16 @@
     const fmt = n => n == null ? '' : n.toLocaleString();
     const tbody = document.getElementById('tableBody');
     let currentSort = { col: 'base_act', asc: false };
-    let currentFilter = 'all';
+    let currentFilter = 'action';
+
+    // Summary always uses full dataset
+    const totalAll = echoData.length;
+    const actionAll = echoData.filter(r => (r.echo_action != null) || (r.estd_action != null)).length;
+    document.getElementById('totalModels').textContent = totalAll;
+    document.getElementById('actionNeeded').textContent = actionAll;
+    document.getElementById('modelsOk').textContent = totalAll - actionAll;
 
     function render(data) {
-        // Summary
-        const total = data.length;
-        const actionCount = data.filter(r => (r.echo_action != null) || (r.estd_action != null)).length;
-        document.getElementById('totalModels').textContent = total;
-        document.getElementById('actionNeeded').textContent = actionCount;
-        document.getElementById('modelsOk').textContent = total - actionCount;
 
         // Table
         tbody.innerHTML = '';
