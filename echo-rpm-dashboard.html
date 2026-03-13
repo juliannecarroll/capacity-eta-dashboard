@@ -289,6 +289,40 @@
         /* Zero / empty muted */
         .muted { color: #d2d0ce; }
 
+        /* ── View tabs ── */
+        .view-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #edebe9;
+        }
+        .view-tab {
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #605e5c;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .view-tab:hover { color: #323130; }
+        .view-tab.active {
+            color: #0078d4;
+            border-bottom-color: #0078d4;
+        }
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* Detail table — action col headers */
+        .detail-action-col {
+            background: #c50f1f;
+            color: #fff;
+        }
+        .detail-action-col:hover { background: #a80d19; }
+        .detail-action-col .sort-arrow { color: #fff; }
+
         /* Footer */
         .footer {
             padding: 16px 24px;
@@ -363,7 +397,13 @@
         </div>
     </div>
 
-    <!-- Filter bar -->
+    <!-- View tabs -->
+    <div class="view-tabs">
+        <button class="view-tab active" data-view="action">Action View</button>
+        <button class="view-tab" data-view="detail">Detail View</button>
+    </div>
+
+    <!-- Filter bar (shared) -->
     <div class="filter-bar">
         <input type="text" class="search-input" id="searchInput" placeholder="Search model name...">
         <button class="filter-chip active" data-filter="all">All</button>
@@ -371,32 +411,59 @@
         <button class="filter-chip" data-filter="ok">OK</button>
     </div>
 
-    <!-- Table -->
-    <div class="table-container">
-        <table id="echoTable">
-            <thead>
-                <tr class="group-header-row">
-                    <th rowspan="2" data-col="model" data-type="string" style="text-align:left;text-transform:none;font-size:13px;color:#323130;">ModelName <span class="sort-arrow">&#9650;</span></th>
-                    <th colspan="4" class="group-baseline">Baseline</th>
-                    <th colspan="3" class="group-echo">Echo</th>
-                    <th colspan="3" class="group-echostd">Echo Standard</th>
-                </tr>
-                <tr>
-                    <th data-col="es_act" data-type="number">ES Peak <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="cp_act" data-type="number">CWC Paid <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="base_act" data-type="number">Total Peak <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="pct3" data-type="number">3% Target <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="ec_appr" data-type="number">Approved <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="echo_margin" data-type="number">Margin <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="echo_action" data-type="number" class="action-col-header">Set To <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="est_appr" data-type="number">Approved <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="estd_margin" data-type="number">Margin <span class="sort-arrow">&#9650;</span></th>
-                    <th data-col="estd_action" data-type="number" class="action-col-header">Set To <span class="sort-arrow">&#9650;</span></th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-            </tbody>
-        </table>
+    <!-- ═══ Action View Panel ═══ -->
+    <div class="view-panel active" id="panelAction">
+        <div class="table-container">
+            <table id="echoTable">
+                <thead>
+                    <tr class="group-header-row">
+                        <th rowspan="2" data-col="model" data-type="string" style="text-align:left;text-transform:none;font-size:13px;color:#323130;">ModelName <span class="sort-arrow">&#9650;</span></th>
+                        <th colspan="4" class="group-baseline">Baseline</th>
+                        <th colspan="3" class="group-echo">Echo</th>
+                        <th colspan="3" class="group-echostd">Echo Standard</th>
+                    </tr>
+                    <tr>
+                        <th data-col="es_act" data-type="number">ES Peak <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="cp_act" data-type="number">CWC Paid <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="base_act" data-type="number">Total Peak <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="pct3" data-type="number">3% Target <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="ec_appr" data-type="number">Approved <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="echo_margin" data-type="number">Margin <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="echo_action" data-type="number" class="action-col-header">Set To <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="est_appr" data-type="number">Approved <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="estd_margin" data-type="number">Margin <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="estd_action" data-type="number" class="action-col-header">Set To <span class="sort-arrow">&#9650;</span></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══ Detail View Panel ═══ -->
+    <div class="view-panel" id="panelDetail">
+        <div class="table-container">
+            <table id="detailTable">
+                <thead>
+                    <tr>
+                        <th data-col="model" data-type="string" style="text-align:left;">ModelName <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="es_act" data-type="number">ES Peak RPM <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="cp_act" data-type="number">CWC Paid Peak RPM <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="base_act" data-type="number">ES+CWC Peak RPM <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="pct3" data-type="number">3% RPM Target <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="ec_appr" data-type="number">Echo RPM Limit <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="est_appr" data-type="number">EchoStd RPM Limit <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="echo_margin" data-type="number">Echo Margin <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="estd_margin" data-type="number">EchoStd Margin <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="echo_action" data-type="number" class="detail-action-col">Echo Set To <span class="sort-arrow">&#9650;</span></th>
+                        <th data-col="estd_action" data-type="number" class="detail-action-col">EchoStd Set To <span class="sort-arrow">&#9650;</span></th>
+                    </tr>
+                </thead>
+                <tbody id="detailTableBody">
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -532,8 +599,10 @@
     // ── Helpers ──
     const fmt = n => n == null ? '' : n.toLocaleString();
     const tbody = document.getElementById('tableBody');
+    const detailBody = document.getElementById('detailTableBody');
     let currentSort = { col: 'base_act', asc: false };
     let currentFilter = 'all';
+    let currentView = 'action';
 
     // ── Summary (always full dataset) ──
     const totalAll = echoData.length;
@@ -575,27 +644,25 @@
     }
     buildActionBanner();
 
-    // ── Table Rendering ──
-    function render(data) {
+    // ── Shared cell helpers ──
+    const marginClass = v => v == null ? '' : v >= 0 ? 'margin-ok' : 'margin-deficit';
+    const numCell = (v, cls) => {
+        const txt = v == null ? '' : v === 0 ? '0' : fmt(v);
+        const cssClass = cls || (v === 0 || v == null ? 'muted' : '');
+        return `<td class="${cssClass}">${txt}</td>`;
+    };
+    const actionCell = v => {
+        if (v == null) return '<td class="muted"></td>';
+        return `<td class="action-value"><span class="arrow-icon">&rarr;</span>${fmt(v)}</td>`;
+    };
+
+    // ── Action View Table ──
+    function renderAction(data) {
         tbody.innerHTML = '';
         for (const r of data) {
             const tr = document.createElement('tr');
             const needsAction = r.echo_action != null || r.estd_action != null;
             tr.className = needsAction ? 'row-action' : 'row-ok';
-
-            const marginClass = v => v == null ? '' : v >= 0 ? 'margin-ok' : 'margin-deficit';
-
-            const numCell = (v, cls) => {
-                const txt = v == null ? '' : v === 0 ? '0' : fmt(v);
-                const cssClass = cls || (v === 0 || v == null ? 'muted' : '');
-                return `<td class="${cssClass}">${txt}</td>`;
-            };
-
-            const actionCell = v => {
-                if (v == null) return '<td class="muted"></td>';
-                return `<td class="action-value"><span class="arrow-icon">&rarr;</span>${fmt(v)}</td>`;
-            };
-
             tr.innerHTML =
                 `<td>${r.model}</td>` +
                 numCell(r.es_act) +
@@ -609,6 +676,29 @@
                 numCell(r.estd_margin, marginClass(r.estd_margin)) +
                 actionCell(r.estd_action);
             tbody.appendChild(tr);
+        }
+    }
+
+    // ── Detail View Table ──
+    function renderDetail(data) {
+        detailBody.innerHTML = '';
+        for (const r of data) {
+            const tr = document.createElement('tr');
+            const needsAction = r.echo_action != null || r.estd_action != null;
+            tr.className = needsAction ? 'row-action' : 'row-ok';
+            tr.innerHTML =
+                `<td>${r.model}</td>` +
+                numCell(r.es_act) +
+                numCell(r.cp_act) +
+                numCell(r.base_act) +
+                numCell(r.pct3) +
+                numCell(r.ec_appr) +
+                numCell(r.est_appr) +
+                numCell(r.echo_margin, marginClass(r.echo_margin)) +
+                numCell(r.estd_margin, marginClass(r.estd_margin)) +
+                actionCell(r.echo_action) +
+                actionCell(r.estd_action);
+            detailBody.appendChild(tr);
         }
     }
 
@@ -630,10 +720,14 @@
         return data;
     }
 
-    function refresh() { render(getFiltered()); }
+    function refresh() {
+        const data = getFiltered();
+        renderAction(data);
+        renderDetail(data);
+    }
 
-    // ── Sort headers (skip group header row) ──
-    document.querySelectorAll('#echoTable th[data-col]').forEach(th => {
+    // ── Sort headers (both tables) ──
+    document.querySelectorAll('#echoTable th[data-col], #detailTable th[data-col]').forEach(th => {
         th.addEventListener('click', () => {
             const col = th.dataset.col;
             if (currentSort.col === col) {
@@ -641,11 +735,27 @@
             } else {
                 currentSort = { col, asc: th.dataset.type === 'string' };
             }
-            document.querySelectorAll('#echoTable th').forEach(h => h.classList.remove('sorted'));
-            th.classList.add('sorted');
-            const arrow = th.querySelector('.sort-arrow');
-            if (arrow) arrow.innerHTML = currentSort.asc ? '&#9650;' : '&#9660;';
+            document.querySelectorAll('#echoTable th, #detailTable th').forEach(h => h.classList.remove('sorted'));
+            // Highlight matching columns in both tables
+            document.querySelectorAll(`#echoTable th[data-col="${col}"], #detailTable th[data-col="${col}"]`).forEach(h => {
+                h.classList.add('sorted');
+                const arrow = h.querySelector('.sort-arrow');
+                if (arrow) arrow.innerHTML = currentSort.asc ? '&#9650;' : '&#9660;';
+            });
             refresh();
+        });
+    });
+
+    // ── View tab switching ──
+    document.querySelectorAll('.view-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentView = tab.dataset.view;
+            document.getElementById('panelAction').classList.toggle('active', currentView === 'action');
+            document.getElementById('panelDetail').classList.toggle('active', currentView === 'detail');
+            // Hide banner on detail view
+            document.getElementById('actionBanner').style.display = currentView === 'action' ? '' : 'none';
         });
     });
 
