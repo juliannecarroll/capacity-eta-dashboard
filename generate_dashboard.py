@@ -41,7 +41,7 @@ else:
 # Transform Kusto rows to dashboard format
 new_entries = []
 for row in kusto_rows:
-    r = dict(zip(COLS, row))
+    r = row if isinstance(row, dict) else dict(zip(COLS, row))
     ado_id = str(r["AdoLink"]) if r["AdoLink"] else ""
     old = ado_lookup.get(ado_id, {})
     
